@@ -1,4 +1,4 @@
-package tor.learning.jwtsecurity;
+package tor.learning.jwtsecurity.service;
 
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
