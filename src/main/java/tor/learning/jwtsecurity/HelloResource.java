@@ -11,9 +11,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import tor.learning.jwtsecurity.model.AuthenticationRequest;
 import tor.learning.jwtsecurity.model.AuthenticationResponse;
+import tor.learning.jwtsecurity.model.TextMessageResponse;
 import tor.learning.jwtsecurity.util.JwtUtil;
 
 @RestController
+@CrossOrigin
 public class HelloResource {
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -23,8 +25,8 @@ public class HelloResource {
     private JwtUtil jwtUtil;
 
     @GetMapping("/hello")
-    public String hello() {
-        return "Hello World";
+    public ResponseEntity<?> hello() {
+        return ResponseEntity.ok(new TextMessageResponse("HelloWorld"));
     }
 
     @PostMapping("/authenticate")
