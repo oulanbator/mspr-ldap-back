@@ -5,8 +5,6 @@ import org.springframework.stereotype.Service;
 import tor.learning.jwtsecurity.model.entity.User;
 import tor.learning.jwtsecurity.model.repository.UserRepository;
 
-import java.util.NoSuchElementException;
-
 @Service
 public class UserService {
     @Autowired

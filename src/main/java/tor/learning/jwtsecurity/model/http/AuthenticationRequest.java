@@ -1,4 +1,4 @@
-package tor.learning.jwtsecurity.model;
+package tor.learning.jwtsecurity.model.http;
 
 public class AuthenticationRequest {
     private String username;

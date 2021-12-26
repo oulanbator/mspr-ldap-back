@@ -20,6 +20,6 @@ public class MyUserDetailService implements UserDetailsService {
         String db_username = this.userService.getUserByUsername(username).getUsername();
         String db_password = this.userService.getUserByUsername(username).getPassword();
 
-        return new User("foo", "foo", new ArrayList<>());
+        return new User(db_username, db_password, new ArrayList<>());
     }
 }

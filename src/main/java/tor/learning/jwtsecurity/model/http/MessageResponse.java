@@ -1,12 +1,9 @@
-package tor.learning.jwtsecurity.model;
+package tor.learning.jwtsecurity.model.http;
 
-public class TextMessageResponse {
+public class MessageResponse {
     private String message;
 
-    public TextMessageResponse() {
-    }
-
-    public TextMessageResponse(String message) {
+    public MessageResponse(String message) {
         this.message = message;
     }
 
