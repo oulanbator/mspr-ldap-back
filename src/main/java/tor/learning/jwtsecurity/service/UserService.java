@@ -18,6 +18,10 @@ public class UserService {
         return this.userRepository.findUserByUsername(username);
     }
 
+    public User getUserByEmail(String email) {
+        return this.userRepository.findUserByEmail(email);
+    }
+
     public User saveUser(User user) {
         return this.userRepository.save(user);
     }

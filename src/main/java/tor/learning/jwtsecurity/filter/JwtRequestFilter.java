@@ -1,5 +1,6 @@
 package tor.learning.jwtsecurity.filter;
 
+import io.jsonwebtoken.MalformedJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,7 +31,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         // get back Authorization Header
         final String authorizationHeader = request.getHeader("Authorization");
-
+//        System.out.println("do filter request test : ");
+//        System.out.println(request.getRequestURI());
         String username = null;
         String jwt = null;
 
@@ -41,7 +43,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-            if (jwtUtil.validateToken(jwt, userDetails)) {
+            Boolean validToken = false;
+            try {
+                validToken = jwtUtil.validateToken(jwt, userDetails);
+            } catch (MalformedJwtException e) {
+                System.out.println("MalformedJwtException");
+            }
+            if (validToken) {
                 // All these things are done by default, but we want to do this only if Jwt is valid
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

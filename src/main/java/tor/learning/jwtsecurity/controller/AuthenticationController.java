@@ -30,9 +30,10 @@ public class AuthenticationController {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             authenticationRequest.getUsername(),
-                            authenticationRequest.getPassword())
+                            authenticationRequest.getPassword()
+                    )
             );
-        } catch (BadCredentialsException e) {
+        } catch (Exception e) { //BadCredentialsException
             AuthenticationResponse response = new AuthenticationResponse(false, "Incorrect username or password");
             return ResponseEntity.ok(response);
         }
@@ -55,7 +56,7 @@ public class AuthenticationController {
 
     @GetMapping("/logout")
     public ResponseEntity<?> logout() {
-        MessageResponse response = new MessageResponse("Logout successfully");
+        MessageResponse response = new MessageResponse("Logout successfully", true);
         return ResponseEntity.ok(response);
     }
 

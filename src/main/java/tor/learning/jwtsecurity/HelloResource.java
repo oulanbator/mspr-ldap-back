@@ -10,7 +10,7 @@ public class HelloResource {
 
     @GetMapping("/hello")
     public ResponseEntity<?> hello() {
-        return ResponseEntity.ok(new MessageResponse("HelloWorld"));
+        return ResponseEntity.ok(new MessageResponse("HelloWorld", true));
     }
 
 }

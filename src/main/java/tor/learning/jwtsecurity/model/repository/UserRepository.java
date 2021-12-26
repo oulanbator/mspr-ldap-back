@@ -7,4 +7,5 @@ import tor.learning.jwtsecurity.model.entity.User;
 @Repository
 public interface UserRepository extends PagingAndSortingRepository<User, Long> {
     User findUserByUsername(String username);
+    User findUserByEmail(String email);
 }
