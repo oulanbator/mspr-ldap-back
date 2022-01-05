@@ -52,7 +52,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             if (validToken) {
                 // All these things are done by default, but we want to do this only if Jwt is valid
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails, null,
+                                userDetails.getAuthorities()
+                        );
                 usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
             }

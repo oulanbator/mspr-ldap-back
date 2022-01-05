@@ -13,6 +13,7 @@ import java.util.function.Function;
 
 @Service
 public class JwtUtil {
+    // TODO : Secret can not stay here hardcoded
     public static final String SECRET_KEY = "secret123";
 
     public String extractUsername(String token) {

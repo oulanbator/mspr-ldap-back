@@ -3,13 +3,15 @@ package tor.learning.jwtsecurity.model.http;
 public class AuthenticationRequest {
     private String username;
     private String password;
+    private String twoFactorsTotp;
 
     public AuthenticationRequest() {
     }
 
-    public AuthenticationRequest(String username, String password) {
+    public AuthenticationRequest(String username, String password, String twoFactorsTotp) {
         this.username = username;
         this.password = password;
+        this.twoFactorsTotp = twoFactorsTotp;
     }
 
     public String getUsername() {
@@ -26,5 +28,13 @@ public class AuthenticationRequest {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getTwoFactorsTotp() {
+        return twoFactorsTotp;
+    }
+
+    public void setTwoFactorsTotp(String twoFactorsTotp) {
+        this.twoFactorsTotp = twoFactorsTotp;
     }
 }

@@ -38,7 +38,8 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
                         "/authenticate",
                         "/register",
                         "/email-available",
-                        "/username-available").permitAll()
+                        "/username-available",
+                        "/confirm-registration").permitAll()
                 .anyRequest().authenticated()
                 .and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);

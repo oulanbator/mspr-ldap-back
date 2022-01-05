@@ -1,19 +1,27 @@
 package tor.learning.jwtsecurity.controller;
 
-import org.apache.commons.codec.binary.Base32;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.WebRequest;
 import tor.learning.jwtsecurity.model.entity.User;
+import tor.learning.jwtsecurity.model.entity.VerificationToken;
 import tor.learning.jwtsecurity.model.http.MessageResponse;
 import tor.learning.jwtsecurity.model.http.RegistrationRequest;
 import tor.learning.jwtsecurity.model.http.SingleStringRequest;
+import tor.learning.jwtsecurity.model.http.StandardApiResponse;
 import tor.learning.jwtsecurity.service.UserService;
+import tor.learning.jwtsecurity.process.registration.OnRegistrationCompleteEvent;
+import tor.learning.jwtsecurity.util.exception.UserAlreadyExistException;
 
-import java.security.SecureRandom;
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+
+import static tor.learning.jwtsecurity.util.AppConstants.*;
 
 @RestController
 @CrossOrigin
@@ -22,46 +30,94 @@ public class RegistrationController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegistrationRequest registrationRequest) {
-        // TODO : backcheck form fields
-        User user = new User();
-        user.setEmail(registrationRequest.getEmail());
-        user.setUsername(registrationRequest.getUsername());
-        user.setPassword(registrationRequest.getPassword());
-        user.setTwoFactorSecret(generateSecretKey());
+    public ResponseEntity<?> register(@RequestBody RegistrationRequest registrationRequest,
+                                      HttpServletRequest request) {
+        // TODO : backcheck form fields ??
         try {
-            this.userService.saveUser(user);
-            return ResponseEntity.ok(new MessageResponse("User created successfully !", true));
+            // Register new user
+            User newUser = this.userService.registerNewUserAccount(registrationRequest);
+            // Send email event
+            // TODO : simplify OnRegistrationCompleteEvent (Locale and context path needed ?)
+            eventPublisher.publishEvent(new OnRegistrationCompleteEvent(
+                    newUser,
+                    request.getLocale(),
+                    request.getContextPath()));
+            // Return response to front-end
+            StandardApiResponse response = new StandardApiResponse(STATUS_SUCCESS, MSG_USER_CREATED);
+            if (newUser.isTwoFactorEnabled()) {
+                String barCode = this.userService.get2FactorsBarCode(newUser.getUsername());
+                response.setData(new ArrayList<>(Collections.singleton(barCode)));
+            }
+            return ResponseEntity.ok(response);
+
+        } catch (UserAlreadyExistException e) {
+            e.printStackTrace();
+            StandardApiResponse response = new StandardApiResponse(STATUS_ERROR, MSG_SERVER_ERROR_IS + e.getMessage());
+            return ResponseEntity.ok(response);
+
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.ok(new MessageResponse("Server error : cannot create user", false));
+            StandardApiResponse response = new StandardApiResponse(STATUS_ERROR, MSG_SERVER_ERROR_UNKNOWN);
+            return ResponseEntity.ok(response);
         }
+    }
+
+//TODO : implement 2FA after login
+
+//    @PostMapping("/generate-two-factor")
+//    public ResponseEntity<?> generate2FA(@RequestBody RegistrationRequest registrationRequest) {
+//        String barCode = this.userService.get2FactorsBarCode(registrationRequest.getUsername());
+//    }
+
+    @GetMapping("/confirm-registration")
+    public ResponseEntity<?> confirmRegistration
+            (WebRequest request, @RequestParam("token") String token) {
+
+        VerificationToken verificationToken = userService.getVerificationToken(token);
+        if (verificationToken == null) {
+            StandardApiResponse response = new StandardApiResponse(STATUS_ERROR, MSG_ERROR_INVALID_TOKEN);
+            return ResponseEntity.ok(response);
+        }
+        Calendar cal = Calendar.getInstance();
+        if ((verificationToken.getExpiryDate().getTime() - cal.getTime().getTime()) <= 0) {
+            StandardApiResponse response = new StandardApiResponse(STATUS_ERROR, MSG_ERROR_EXPIRED_TOKEN);
+            return ResponseEntity.ok(response);
+        }
+        // Token valid : activate account
+        User user = verificationToken.getUser();
+        user.setEnabled(true);
+        userService.saveUser(user);
+        StandardApiResponse response = new StandardApiResponse(STATUS_SUCCESS, MSG_ACCOUNT_VERIFIED);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/email-available")
     public ResponseEntity<?> emailAvailable(@RequestBody SingleStringRequest stringRequest) {
-        if (this.userService.getUserByEmail(stringRequest.getData()) == null) {
-            return ResponseEntity.ok(new MessageResponse("Email is available !", true));
+        User userExists = this.userService.getUserByEmail(stringRequest.getData());
+        StandardApiResponse response;
+        if (userExists == null) {
+            response = new StandardApiResponse(STATUS_SUCCESS);
         } else {
-            return ResponseEntity.ok(new MessageResponse("Email is already taken !", false));
+            response = new StandardApiResponse(STATUS_FAIL, MSG_EMAIL_TAKEN);
         }
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/username-available")
     public ResponseEntity<?> usernameAvailable(@RequestBody SingleStringRequest stringRequest) {
-        if (this.userService.getUserByUsername(stringRequest.getData()) == null) {
-            return ResponseEntity.ok(new MessageResponse("Username is available !", true));
+        User userExists = this.userService.getUserByUsername(stringRequest.getData());
+        StandardApiResponse response;
+        if (userExists == null) {
+            response = new StandardApiResponse(STATUS_SUCCESS);
         } else {
-            return ResponseEntity.ok(new MessageResponse("Username is already taken !", false));
+            response = new StandardApiResponse(STATUS_FAIL, MSG_USERNAME_TAKEN);
         }
+        return ResponseEntity.ok(response);
     }
 
-    public static String generateSecretKey() {
-        SecureRandom random = new SecureRandom();
-        byte[] bytes = new byte[20];
-        random.nextBytes(bytes);
-        Base32 base32 = new Base32();
-        return base32.encodeToString(bytes);
-    }
+
 }

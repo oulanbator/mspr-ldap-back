@@ -8,21 +8,30 @@ public class User {
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(unique = true)
     private String username;
+
     private String password;
+
     @Column(unique = true)
     private String email;
+
     private String twoFactorSecret;
+    private boolean twoFactorEnabled;
+
+    private boolean enabled;
 
     public User() {
     }
 
-    public User(String username, String password, String email, String twoFactorSecret) {
+    public User(String username, String password, String email, String twoFactorSecret, boolean twoFactorEnabled) {
         this.username = username;
         this.password = password;
         this.email = email;
         this.twoFactorSecret = twoFactorSecret;
+        this.twoFactorEnabled = twoFactorEnabled;
+        this.enabled = false;
     }
 
     public Long getId() {
@@ -63,5 +72,21 @@ public class User {
 
     public void setTwoFactorSecret(String twoFactorSecret) {
         this.twoFactorSecret = twoFactorSecret;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public boolean isTwoFactorEnabled() {
+        return twoFactorEnabled;
+    }
+
+    public void setTwoFactorEnabled(boolean twoFactorEnabled) {
+        this.twoFactorEnabled = twoFactorEnabled;
     }
 }

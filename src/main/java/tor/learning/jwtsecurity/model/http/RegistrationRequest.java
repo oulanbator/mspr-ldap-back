@@ -4,14 +4,16 @@ public class RegistrationRequest {
     private String email;
     private String username;
     private String password;
+    private Boolean twoFactorEnabled;
 
     public RegistrationRequest() {
     }
 
-    public RegistrationRequest(String email, String username, String password) {
+    public RegistrationRequest(String email, String username, String password, Boolean twoFactorEnabled) {
         this.email = email;
         this.username = username;
         this.password = password;
+        this.twoFactorEnabled = twoFactorEnabled;
     }
 
     public String getEmail() {
@@ -36,5 +38,13 @@ public class RegistrationRequest {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Boolean getTwoFactorEnabled() {
+        return twoFactorEnabled;
+    }
+
+    public void setTwoFactorEnabled(Boolean twoFactorEnabled) {
+        this.twoFactorEnabled = twoFactorEnabled;
     }
 }

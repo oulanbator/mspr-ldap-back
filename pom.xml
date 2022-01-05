@@ -17,6 +17,7 @@
 		<java.version>1.8</java.version>
 	</properties>
 	<dependencies>
+<!-- SPRINGBOOT STARTERS -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
@@ -30,7 +31,7 @@
 			<artifactId>spring-boot-devtools</artifactId>
 			<optional>true</optional>
 		</dependency>
-		<!--Database-->
+		<!--PERSISTENCE-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -40,7 +41,14 @@
 			<artifactId>h2</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-		<!--JWT-->
+		<!-- EMAIL SENDING -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+			<version>2.5.6</version>
+		</dependency>
+
+<!--JWT-->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt</artifactId>
@@ -51,7 +59,8 @@
 			<artifactId>jaxb-api</artifactId>
 			<version>2.3.1</version>
 		</dependency>
-		<!--TOTP 2FAuth-->
+
+<!--TOTP 2FAuth-->
 		<dependency>
 			<groupId>de.taimos</groupId>
 			<artifactId>totp</artifactId>
@@ -63,8 +72,7 @@
 			<version>1.10</version>
 		</dependency>
 
-
-		<!--TEST-->
+<!--TESTS - Springboot-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
