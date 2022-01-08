@@ -7,15 +7,11 @@ public class AppConstants {
     public static final String STATUS_FAIL = "fail";
     public static final String STATUS_ERROR = "error";
 
-    public static final String MSG_EMAIL_TAKEN = "Email is already taken !";
-    public static final String MSG_USERNAME_TAKEN = "Email is already taken !";
-    public static final String MSG_EMAIL_AVAILABLE = "Email is available !";
-
-    public static final String MSG_USER_CREATED = "User created successfully !";
-    public static final String MSG_ACCOUNT_VERIFIED = "Account successfully verified";
-    public static final String MSG_ACCOUNT_NOT_ACTIVATED = "Inactive account. Please check your emails";
     public static final String MSG_BAD_CREDENTIALS = "Bad credentials, verify username and password";
-    public static final String MSG_TWO_FACTORS_ACCOUNT = "Two factors authentication activated on this account";
+    public static final String MSG_ACTIVATE_TWO_FACTORS = "Activation - You need to activate two factors authentication";
+    public static final String MSG_ENTER_TOTP = "TOTP - Please enter your time-based code";
+    public static final String MSG_TOTP_ERROR = "Error - Invalid one-time code";
+    public static final String MSG_ACCOUNT_ACTIVATED = "Success - Two factors authentication activated";
 
     public static final String MSG_SERVER_ERROR_IS = "Server error : ";
     public static final String MSG_SERVER_ERROR_UNKNOWN = "Unknown server error";

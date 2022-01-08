@@ -5,15 +5,11 @@ import org.apache.commons.codec.binary.Base32;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.binary.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import tor.learning.jwtsecurity.model.entity.User;
-import tor.learning.jwtsecurity.model.entity.VerificationToken;
 import tor.learning.jwtsecurity.model.http.AuthenticationRequest;
-import tor.learning.jwtsecurity.model.http.RegistrationRequest;
 import tor.learning.jwtsecurity.model.repository.UserRepository;
-import tor.learning.jwtsecurity.model.repository.VerificationTokenRepository;
-import tor.learning.jwtsecurity.util.exception.UserAlreadyExistException;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -26,8 +22,6 @@ import static tor.learning.jwtsecurity.util.AppConstants.APPLICATION_NAME;
 public class UserService {
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private VerificationTokenRepository verificationTokenRepository;
 
     public User getUser(Long userid) {
         return this.userRepository.findById(userid).get();
@@ -45,37 +39,28 @@ public class UserService {
         return this.userRepository.save(user);
     }
 
-    public User registerNewUserAccount(RegistrationRequest registrationRequest) throws UserAlreadyExistException {
-        User user = new User();
-        user.setEmail(registrationRequest.getEmail());
-        user.setUsername(registrationRequest.getUsername());
-        user.setTwoFactorEnabled(registrationRequest.getTwoFactorEnabled());
+    // TWO FACTORS AUTHENTICATION
 
-        // TODO : encode password ? Or get encoded from front-end
-        user.setPassword(registrationRequest.getPassword());
-
-        user.setTwoFactorSecret(generateSecretKey());
-        try {
-            return this.saveUser(user);
-        } catch (Exception e) {
-            throw new UserAlreadyExistException("Email or Username Already taken");
+    public void verifyPassword(String username, String password) throws BadCredentialsException {
+        final User user = getUserByUsername(username);
+        if (!StringUtils.equals(password, user.getPassword())) {
+            throw new BadCredentialsException("BadCredentialsException");
         }
     }
 
-    // EMAIL VERIFICATION
-
-    public VerificationToken createVerificationToken(User user, String token) {
-        VerificationToken newToken = new VerificationToken(token, user);
-        return this.verificationTokenRepository.save(newToken);
+    public User initializeTwoFactorsSecret(String username) {
+        User user = getUserByUsername(username);
+        user.setTwoFactorSecret(generateSecretKey());
+        return this.saveUser(user);
     }
 
-    public VerificationToken getVerificationToken(String VerificationToken) {
-        return this.verificationTokenRepository.findByToken(VerificationToken);
+    public void activateAccount(String username) {
+        User user = getUserByUsername(username);
+        user.setTwoFactorVerified(true);
+        saveUser(user);
     }
 
-    // TWO FACTORS AUTHENTICATION
-
-    public static String generateSecretKey() {
+    private static String generateSecretKey() {
         SecureRandom random = new SecureRandom();
         byte[] bytes = new byte[20];
         random.nextBytes(bytes);

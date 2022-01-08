@@ -18,20 +18,24 @@ public class User {
     private String email;
 
     private String twoFactorSecret;
-    private boolean twoFactorEnabled;
+    private boolean twoFactorVerified;
 
-    private boolean enabled;
+    private String userAgent;
+    private String ipAddress;
 
     public User() {
+        this.twoFactorVerified = false;
     }
 
-    public User(String username, String password, String email, String twoFactorSecret, boolean twoFactorEnabled) {
+    public User(String username, String password, String email, String twoFactorSecret, 
+                String userAgent, String ipAddress) {
         this.username = username;
         this.password = password;
         this.email = email;
         this.twoFactorSecret = twoFactorSecret;
-        this.twoFactorEnabled = twoFactorEnabled;
-        this.enabled = false;
+        this.twoFactorVerified = false;
+        this.userAgent = userAgent;
+        this.ipAddress = ipAddress;
     }
 
     public Long getId() {
@@ -74,19 +78,28 @@ public class User {
         this.twoFactorSecret = twoFactorSecret;
     }
 
-    public boolean isEnabled() {
-        return enabled;
+    public boolean isTwoFactorVerified() {
+        return twoFactorVerified;
     }
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+    public void setTwoFactorVerified(boolean twoFactorVerified) {
+        this.twoFactorVerified = twoFactorVerified;
     }
 
-    public boolean isTwoFactorEnabled() {
-        return twoFactorEnabled;
+    public String getUserAgent() {
+        return userAgent;
     }
 
-    public void setTwoFactorEnabled(boolean twoFactorEnabled) {
-        this.twoFactorEnabled = twoFactorEnabled;
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
     }
+
+    public String getIpAddress() {
+        return ipAddress;
+    }
+
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
+    }
+    
 }

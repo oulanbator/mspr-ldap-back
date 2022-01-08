@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import tor.learning.jwtsecurity.model.entity.User;
 
 import java.util.ArrayList;
-import java.util.Optional;
 
 @Service
 public class MyUserDetailService implements UserDetailsService {
@@ -29,13 +28,11 @@ public class MyUserDetailService implements UserDetailsService {
                 throw new UsernameNotFoundException(
                         "No user found with username: " + username);
             }
-
-
-            // If user found, return a UserDetails.User
+            // If user found, return a UserDetails.User object
             return new org.springframework.security.core.userdetails.User(
                     user.getUsername(),
                     user.getPassword(),
-                    user.isEnabled(),
+                    user.isTwoFactorVerified(),
                     accountNonExpired,
                     credentialsNonExpired,
                     accountNonLocked,
@@ -45,11 +42,5 @@ public class MyUserDetailService implements UserDetailsService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
-        // Supposed to return the user based on arguments
-//        String db_username = this.userService.getUserByUsername(username).getUsername();
-//        String db_password = this.userService.getUserByUsername(username).getPassword();
-//
-//        return new User(db_username, db_password, new ArrayList<>());
     }
 }
