@@ -1,23 +1,24 @@
-package tor.learning.jwtsecurity.service;
+package epsi.mspr.ldapback.service;
+
+import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import tor.learning.jwtsecurity.model.entity.User;
 
-import java.util.ArrayList;
+import epsi.mspr.ldapback.model.entity.User;
 
 @Service
-public class MyUserDetailService implements UserDetailsService {
+public class CustomUserDetailService implements UserDetailsService {
     @Autowired
     private UserService userService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         // TODO : implement these properties in User entity
+        String password = "";
         boolean accountNonExpired = true;
         boolean credentialsNonExpired = true;
         boolean accountNonLocked = true;
@@ -31,7 +32,7 @@ public class MyUserDetailService implements UserDetailsService {
             // If user found, return a UserDetails.User object
             return new org.springframework.security.core.userdetails.User(
                     user.getUsername(),
-                    user.getPassword(),
+                    password,
                     user.isTwoFactorVerified(),
                     accountNonExpired,
                     credentialsNonExpired,

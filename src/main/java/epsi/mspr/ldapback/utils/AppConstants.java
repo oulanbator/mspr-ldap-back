@@ -1,7 +1,7 @@
-package tor.learning.jwtsecurity.util;
+package epsi.mspr.ldapback.utils;
 
 public class AppConstants {
-    public static final String APPLICATION_NAME = "MyApp";
+    public static final String APPLICATION_NAME = "MSPR-LDAP";
 
     public static final String STATUS_SUCCESS = "success";
     public static final String STATUS_FAIL = "fail";

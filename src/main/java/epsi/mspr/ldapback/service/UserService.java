@@ -1,27 +1,31 @@
-package tor.learning.jwtsecurity.service;
-
-import de.taimos.totp.TOTP;
-import org.apache.commons.codec.binary.Base32;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.codec.binary.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.stereotype.Service;
-import tor.learning.jwtsecurity.model.entity.User;
-import tor.learning.jwtsecurity.model.http.AuthenticationRequest;
-import tor.learning.jwtsecurity.model.repository.UserRepository;
+package epsi.mspr.ldapback.service;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.SecureRandom;
 import java.util.Objects;
 
-import static tor.learning.jwtsecurity.util.AppConstants.APPLICATION_NAME;
+import org.apache.commons.codec.binary.Base32;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.binary.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.stereotype.Service;
+
+import de.taimos.totp.TOTP;
+import epsi.mspr.ldapback.model.entity.User;
+import epsi.mspr.ldapback.model.http.AuthenticationRequest;
+import epsi.mspr.ldapback.model.repository.UserRepository;
+import epsi.mspr.ldapback.utils.AppConstants;
 
 @Service
 public class UserService {
     @Autowired
     private UserRepository userRepository;
+
+    // Basic CRUD :
+    // - Create / Update => saveUser()
+    // - Read => getUser() (...)
 
     public User getUser(Long userid) {
         return this.userRepository.findById(userid).get();
@@ -40,6 +44,17 @@ public class UserService {
     }
 
     // TWO FACTORS AUTHENTICATION
+
+    public User loadLdapAuthenticatedUser(String username) {
+        User user = getUserByUsername(username);
+        if (user != null) {
+            return user;
+        } else {
+            User newUser = new User();
+            newUser.setUsername(username);
+            return saveUser(newUser);
+        }
+    }
 
     public void verifyPassword(String username, String password) throws BadCredentialsException {
         final User user = getUserByUsername(username);
@@ -79,7 +94,7 @@ public class UserService {
         User user = this.getUserByUsername(username);
         if (user != null) {
             String secretKey = user.getTwoFactorSecret();
-            String issuer = APPLICATION_NAME;
+            String issuer = AppConstants.APPLICATION_NAME;
             return buildGoogleAuthenticatorBarCode(secretKey, username, issuer);
         } else {
             return null;

@@ -1,13 +1,13 @@
-package tor.learning.jwtsecurity;
+package epsi.mspr.ldapback;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class JwtSecurityApplication {
+public class LdapBackApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(JwtSecurityApplication.class, args);
+		SpringApplication.run(LdapBackApplication.class, args);
 	}
 
 }

@@ -1,10 +1,10 @@
-package tor.learning.jwtsecurity;
+package epsi.mspr.ldapback;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class JwtSecurityApplicationTests {
+class LdapBackApplicationTests {
 
 	@Test
 	void contextLoads() {

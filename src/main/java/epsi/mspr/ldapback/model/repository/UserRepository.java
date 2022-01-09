@@ -1,8 +1,9 @@
-package tor.learning.jwtsecurity.model.repository;
+package epsi.mspr.ldapback.model.repository;
 
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
-import tor.learning.jwtsecurity.model.entity.User;
+
+import epsi.mspr.ldapback.model.entity.User;
 
 @Repository
 public interface UserRepository extends PagingAndSortingRepository<User, Long> {

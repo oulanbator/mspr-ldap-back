@@ -1,4 +1,4 @@
-package tor.learning.jwtsecurity.model.http;
+package epsi.mspr.ldapback.model.http;
 
 public class AuthenticationRequest {
     private String username;
@@ -38,3 +38,4 @@ public class AuthenticationRequest {
         this.twoFactorsTotp = twoFactorsTotp;
     }
 }
+

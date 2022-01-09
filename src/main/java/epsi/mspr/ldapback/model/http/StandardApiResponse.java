@@ -1,4 +1,4 @@
-package tor.learning.jwtsecurity.model.http;
+package epsi.mspr.ldapback.model.http;
 
 import java.util.List;
 
