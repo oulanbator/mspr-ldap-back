@@ -44,15 +44,15 @@ sn: Alex
 uid: ben
 userPassword: $2a$10$c6bSeWPhg06xB1lvmaWNNe4NROmZiSpYhlocU/98HNr2MhIOiSt36
 
-dn: uid=bob,ou=people,dc=springframework,dc=org
+dn: uid=mspr,ou=people,dc=springframework,dc=org
 objectclass: top
 objectclass: person
 objectclass: organizationalPerson
 objectclass: inetOrgPerson
 cn: Bob Hamilton
 sn: Hamilton
-uid: bob
-userPassword: bobspassword
+uid: mspr
+userPassword: $2a$10$FB..5yQh1RkqMtvqmx7zueeYYp6.aVv1DVFDIerlE6NyCgHIeWP7.
 
 dn: uid=joe,ou=otherpeople,dc=springframework,dc=org
 objectclass: top
