@@ -8,6 +8,7 @@ public class LdapBackApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(LdapBackApplication.class, args);
+
 	}
 
 }
