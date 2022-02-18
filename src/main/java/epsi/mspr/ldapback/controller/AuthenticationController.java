@@ -24,8 +24,10 @@ import epsi.mspr.ldapback.model.http.StandardApiResponse;
 import epsi.mspr.ldapback.service.CustomUserDetailService;
 import epsi.mspr.ldapback.service.UserService;
 import epsi.mspr.ldapback.service.jwt.JwtService;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @RestController
+@RequestMapping("/api")
 @CrossOrigin
 public class AuthenticationController {
     @Autowired
