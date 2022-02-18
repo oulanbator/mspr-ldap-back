@@ -27,6 +27,9 @@ public class User {
 
     private String userAgent;
     private String ipAddress;
+    
+    private int attempts;
+    private boolean isBlocked;
 
     public User() {
         this.twoFactorVerified = false;
@@ -41,6 +44,8 @@ public class User {
         this.twoFactorVerified = false;
         this.userAgent = userAgent;
         this.ipAddress = ipAddress;
+        this.isBlocked = false;
+        this.attempts = 0;
     }
 
     public Long getId() {
@@ -105,6 +110,28 @@ public class User {
 
     public void setIpAddress(String ipAddress) {
         this.ipAddress = ipAddress;
+    }
+    
+    public boolean isBlocked(){
+        return this.isBlocked;
+    }
+    
+    public void block(){
+        this.isBlocked = true;
+    }
+    
+    public void unBlock(){
+        this.isBlocked = false;
+        this.cleanAttempts();
+    }
+    public void cleanAttempts(){
+        this.attempts = 0;
+    }
+    
+    public void addAttempt(){
+        if (++this.attempts >= 5){
+            this.block();
+        }
     }
     
 }
