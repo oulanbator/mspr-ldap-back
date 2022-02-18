@@ -3,8 +3,10 @@ package epsi.mspr.ldapback.service;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.SecureRandom;
+import java.util.List;
 import java.util.Objects;
 
+import epsi.mspr.ldapback.utils.ListUtils;
 import org.apache.commons.codec.binary.Base32;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.binary.StringUtils;
@@ -18,10 +20,13 @@ import epsi.mspr.ldapback.model.http.AuthenticationRequest;
 import epsi.mspr.ldapback.model.repository.UserRepository;
 import epsi.mspr.ldapback.utils.AppConstants;
 
+import javax.transaction.Transactional;
+
 @Service
 public class UserService {
     @Autowired
     private UserRepository userRepository;
+
 
     // Basic CRUD :
     // - Create / Update => saveUser()
@@ -44,7 +49,6 @@ public class UserService {
     }
 
     // TWO FACTORS AUTHENTICATION
-
     public User loadLdapAuthenticatedUser(String username) {
         User user = getUserByUsername(username);
         if (user != null) {
@@ -75,6 +79,37 @@ public class UserService {
         saveUser(user);
     }
 
+    private void addIP(String username, String ip){
+        User user = getUserByUsername(username);
+        String newList = ListUtils.addToList(user.getIpList(), ip);
+        user.setIpList(newList);
+    }
+
+    public void checkIP(String username, String ip){
+        User user = getUserByUsername(username);
+        List<String> ips = ListUtils.stringToList(user.getIpList());
+        if(!ips.contains(ip)){
+            //todo: envoi mail de signalement
+            //todo: bloquer si ip etrangere
+            addIP(username, ip);
+        }
+    }
+
+    private void addAgent(String username, String agent){
+        User user = getUserByUsername(username);
+        String newList = ListUtils.addToList(user.getAgentList(), agent);
+        user.setAgentList(newList);
+    }
+
+    public void checkAgent(String username, String agent){
+        User user = getUserByUsername(username);
+        List<String> agents = ListUtils.stringToList(user.getIpList());
+        if(!agents.contains(agent)){
+            //todo: envoi mail qui vise à confirmer la connexion
+            addAgent(username, agent);
+        }
+    }
+
     private static String generateSecretKey() {
         SecureRandom random = new SecureRandom();
         byte[] bytes = new byte[20];
@@ -84,6 +119,7 @@ public class UserService {
     }
 
     public static String getTOTPCode(String secretKey) {
+        System.out.println(secretKey);
         Base32 base32 = new Base32();
         byte[] bytes = base32.decode(secretKey);
         String hexKey = Hex.encodeHexString(bytes);

@@ -2,20 +2,20 @@ package epsi.mspr.ldapback.controller;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Objects;
 
-import org.apache.commons.codec.binary.StringUtils;
+import antlr.StringUtils;
+import epsi.mspr.ldapback.utils.BrowsersUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import epsi.mspr.ldapback.model.entity.User;
 import static epsi.mspr.ldapback.utils.AppConstants.*;
@@ -25,7 +25,10 @@ import epsi.mspr.ldapback.service.CustomUserDetailService;
 import epsi.mspr.ldapback.service.UserService;
 import epsi.mspr.ldapback.service.jwt.JwtService;
 
+import javax.servlet.http.HttpServletRequest;
+
 @RestController
+@RequestMapping("/api")
 @CrossOrigin
 public class AuthenticationController {
     @Autowired
@@ -38,7 +41,9 @@ public class AuthenticationController {
     private JwtService jwtService;
 
     @PostMapping("/authenticate")
-    public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequest authenticationRequest) {
+    public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequest authenticationRequest, HttpServletRequest request) {
+        String ip = request.getRemoteHost();
+        String browser = BrowsersUtils.getInitialsFromAgent(request.getHeader("User-Agent"));
 
         // TODO : [SECURITY]  Gérer l'injection SQL ici ? Avant de passer à la suite ?
         
@@ -72,7 +77,7 @@ public class AuthenticationController {
         // ###########################################################################
         // STEP 2 - Credentials ok, account is activated : handle login with 2FA
         // ###########################################################################
-        return handleSecondFactorLogin(authenticationRequest);
+        return handleSecondFactorLogin(authenticationRequest, ip, browser);
     }
 
     /**
@@ -96,7 +101,7 @@ public class AuthenticationController {
         String TOTP = authenticationRequest.getTwoFactorsTotp();
         
         // Case 1 - First login for this user : needs to activate 2FA
-        if (StringUtils.equals(TOTP, "")) {
+        if (Objects.equals(TOTP, "")) {
             // Generate 2FA secret in user entity and build fail response
             this.userService.initializeTwoFactorsSecret(username);
             StandardApiResponse response = new StandardApiResponse(STATUS_FAIL, MSG_ACTIVATE_TWO_FACTORS);
@@ -107,9 +112,8 @@ public class AuthenticationController {
         }
 
         // Case 2 - User is activating 2FA
-        Boolean TOTPSuccess = this.userService.totpVerified(authenticationRequest);
-        if (TOTPSuccess) {        
-            // TOTP Code is valid : activate account 
+        Boolean TOTPSuccess = this.userService.totpVerified(authenticationRequest); //user enter the 6 numbers
+        if (TOTPSuccess) {    // TOTP Code is valid : activate account
             this.userService.activateAccount(username);
             return ResponseEntity.ok(new StandardApiResponse(STATUS_SUCCESS, MSG_ACCOUNT_ACTIVATED));
         } else {
@@ -132,18 +136,22 @@ public class AuthenticationController {
      * @param authenticationRequest
      * @return ResponseEntity
      */
-    private ResponseEntity<?> handleSecondFactorLogin(AuthenticationRequest authenticationRequest) {
+    private ResponseEntity<?> handleSecondFactorLogin(AuthenticationRequest authenticationRequest, String ip, String browser) {
         String username = authenticationRequest.getUsername();
         String TOTP = authenticationRequest.getTwoFactorsTotp();
 
         // 1 - Credentials ok : Check if 2FA code is present in request
-        if (StringUtils.equals(TOTP, "")) {
+        if (Objects.equals(TOTP, "")) {
             return ResponseEntity.ok(new StandardApiResponse(STATUS_SUCCESS, MSG_ENTER_TOTP));
         }
 
         // 2 - Check 2FA code validity
-        Boolean TOPTSuccess = this.userService.totpVerified(authenticationRequest);
+        boolean TOPTSuccess = this.userService.totpVerified(authenticationRequest);
         if (TOPTSuccess) {
+            //todo: check ip et navigateur
+            this.userService.checkIP(username, ip);
+            this.userService.checkAgent(username, browser);
+
             // If auth succeed and TOTP valid, build response with JWT token
             // TODO : [SECURITY] vérifier les infos passées dans ce token dans customUserDetailsService
             final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
@@ -184,5 +192,22 @@ public class AuthenticationController {
         StandardApiResponse response = new StandardApiResponse(STATUS_SUCCESS);
         return ResponseEntity.ok(response);
     }
+
+    //debug pour mail process
+//    @Autowired
+//    public JavaMailSender emailSender;
+//    @GetMapping("/sendmail")
+//    public String send() {
+//        SimpleMailMessage message = new SimpleMailMessage();
+//
+//        message.setTo("i am an email");
+//        message.setSubject("Test Simple Email");
+//        message.setText("Hello, Im testing Simple Email");
+//
+//        // Send Message!
+//        this.emailSender.send(message);
+//
+//        return "Email Sent!";
+//    }
 
 }

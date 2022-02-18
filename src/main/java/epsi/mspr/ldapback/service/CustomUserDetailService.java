@@ -26,8 +26,9 @@ public class CustomUserDetailService implements UserDetailsService {
             // Look for user in database
             User user = userService.getUserByUsername(username);
             if (user == null) {
-                throw new UsernameNotFoundException(
-                        "No user found with username: " + username);
+//                throw new UsernameNotFoundException(
+//                        "No user found with username: " + username);
+                return null;
             }
             // If user found, return a UserDetails.User object
             return new org.springframework.security.core.userdetails.User(
