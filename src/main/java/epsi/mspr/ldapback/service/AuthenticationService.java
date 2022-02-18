@@ -44,7 +44,8 @@ public class AuthenticationService {
         // ###########################################################################
 
         try {
-            verifyCredentialsAndActivatedAccount(authenticationRequest);            
+            verifyCredentialsAndActivatedAccount(authenticationRequest);    
+            //Check ip and address        
         
         } catch (DisabledException e) {
             return handleDisabledException(authenticationRequest);
@@ -58,6 +59,8 @@ public class AuthenticationService {
             e.printStackTrace();
             return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, MSG_SERVER_ERROR_UNKNOWN));
         }
+
+        // check ip nav
 
         // ###########################################################################
         // STEP 2 - If credentials ok and account is activated : handle 2nd factor (TOTP)
@@ -114,6 +117,7 @@ public class AuthenticationService {
         if (TOTPSuccess) {        
             // TOTP Code is valid : activate account 
             this.userService.activateAccount(username);
+            // recupere navigateur et ip
             return ResponseEntity.ok(new StandardApiResponse(STATUS_SUCCESS, MSG_ACCOUNT_ACTIVATED));
         } else {
             return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, MSG_TOTP_ERROR));

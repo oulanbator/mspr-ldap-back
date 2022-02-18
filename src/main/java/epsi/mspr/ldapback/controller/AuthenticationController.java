@@ -34,7 +34,7 @@ public class AuthenticationController {
     @PostMapping("/authenticate")
     public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequest authenticationRequest, HttpServletRequest request) {
         // TODO : [SECURITY]  Gérer l'injection SQL ici ? Avant de passer à la suite ?
-
+        
         return authenticationService.authenticate(authenticationRequest, request);
     }
 
