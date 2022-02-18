@@ -62,6 +62,18 @@ public class UserService {
             throw new BadCredentialsException("BadCredentialsException");
         }
     }
+    
+    public boolean addAttempt(String username){
+        User user = this.getUserByUsername(username);
+        user.addAttempt();
+        System.out.println(user.getAttempts());
+        return !user.isBlocked();
+    }
+    
+    public void clearAttempt(String username){
+        User user = this.getUserByUsername(username);
+        user.cleanAttempts();
+    }
 
     public User initializeTwoFactorsSecret(String username) {
         User user = getUserByUsername(username);

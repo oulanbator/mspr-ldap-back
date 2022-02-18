@@ -128,6 +128,10 @@ public class User {
         this.attempts = 0;
     }
     
+    public int getAttempts(){
+        return this.attempts;
+    }
+    
     public void addAttempt(){
         if (++this.attempts >= 5){
             this.block();

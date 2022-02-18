@@ -1,5 +1,6 @@
 package epsi.mspr.ldapback.controller;
 
+import epsi.mspr.ldapback.exception.BlockedException;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -57,13 +58,18 @@ public class AuthenticationController {
             User user = this.userService.loadLdapAuthenticatedUser(username);
             // If 2FA not activated thow Exception
             if (!user.isTwoFactorVerified()) throw new DisabledException("Two factors must be activated for : " + username);
+            if (user.isBlocked()) throw new BlockedException("The account" + username + " is blocked");
         
         } catch (DisabledException e) {
             return handleDisabledException(authenticationRequest);
         
         } catch (BadCredentialsException e) {
+            this.userService.addAttempt(authenticationRequest.getUsername());
             // TODO : [SECURITY] Gérer ici les tentatives successives avec mauvais credentials pour un utilisateur existant ?
             return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, MSG_BAD_CREDENTIALS));
+        
+        } catch (BlockedException e) {
+            return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, MSG_ERROR_BLOCKED));
         
         } catch (Exception e) {
             // TODO : [CODE MORT] Supprimer ?

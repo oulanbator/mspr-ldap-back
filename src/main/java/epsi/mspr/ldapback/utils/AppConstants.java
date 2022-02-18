@@ -18,4 +18,6 @@ public class AppConstants {
 
     public static final String MSG_ERROR_INVALID_TOKEN = "Error : invalid token";
     public static final String MSG_ERROR_EXPIRED_TOKEN = "Error : token expired";
+    
+    public static final String MSG_ERROR_BLOCKED = "Error : Account blocked";
 }
