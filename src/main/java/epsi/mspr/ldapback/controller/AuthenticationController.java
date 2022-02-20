@@ -194,20 +194,25 @@ public class AuthenticationController {
     }
 
     //debug pour mail process
-//    @Autowired
-//    public JavaMailSender emailSender;
-//    @GetMapping("/sendmail")
-//    public String send() {
-//        SimpleMailMessage message = new SimpleMailMessage();
-//
-//        message.setTo("i am an email");
-//        message.setSubject("Test Simple Email");
-//        message.setText("Hello, Im testing Simple Email");
-//
-//        // Send Message!
-//        this.emailSender.send(message);
-//
-//        return "Email Sent!";
-//    }
+    @Autowired
+    public JavaMailSender emailSender;
+
+    @GetMapping("/sendmail")
+    public String send() {
+
+        String recipientAddress = "victor.matheron@gmail.com";
+        String subject = "Email de test";
+        String message = "Vous vous êtes connecté avec une nouvelle adresse IP";
+
+        SimpleMailMessage email = new SimpleMailMessage();
+        email.setTo(recipientAddress);
+        email.setSubject(subject);
+        email.setText(message);
+
+        // Send Message!
+        this.emailSender.send(email);
+
+        return "Email Sent!";
+    }
 
 }
