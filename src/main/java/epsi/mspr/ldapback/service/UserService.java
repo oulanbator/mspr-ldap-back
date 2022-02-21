@@ -11,7 +11,11 @@ import org.apache.commons.codec.binary.Base32;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.binary.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.encrypt.Encryptors;
+import org.springframework.security.crypto.encrypt.TextEncryptor;
+import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
 
 import de.taimos.totp.TOTP;
@@ -24,6 +28,9 @@ import javax.transaction.Transactional;
 
 @Service
 public class UserService {
+//    @Value("${SPRINGBOOT_SECRET}") // décommenter pour récupérer le secret depuis une variable d'environnement
+    private String appSecret = "mspr&infrastructure";
+
     @Autowired
     private UserRepository userRepository;
 
@@ -69,8 +76,28 @@ public class UserService {
 
     public User initializeTwoFactorsSecret(String username) {
         User user = getUserByUsername(username);
-        user.setTwoFactorSecret(generateSecretKey());
+        if (user == null) return null;
+        // Generate Secret
+        String userSecret = generateSecretKey();
+        // Encrypt secret
+        String salt = KeyGenerators.string().generateKey();
+        String uniqueSecretEncoder = appSecret + user.getUsername();
+        TextEncryptor encryptor = Encryptors.text(uniqueSecretEncoder, salt);
+        String encryptedSecret = encryptor.encrypt(userSecret);
+        // Persist encrypted secret and salt in database
+        user.setTwoFactorSecret(encryptedSecret);
+        user.setSecretSalt(salt);
         return this.saveUser(user);
+    }
+    public String decryptTwoFactorsSecret(User user) {
+        // Get database variables
+        String encryptedSecret = user.getTwoFactorSecret();
+        String salt = user.getSecretSalt();
+        String uniqueSecretEncoder = appSecret + user.getUsername();
+        // Get encryptor
+        TextEncryptor encryptor = Encryptors.text(uniqueSecretEncoder, salt);
+        String userSecret = encryptor.decrypt(encryptedSecret);
+        return userSecret;
     }
 
     public void activateAccount(String username) {
@@ -119,7 +146,6 @@ public class UserService {
     }
 
     public static String getTOTPCode(String secretKey) {
-        System.out.println(secretKey);
         Base32 base32 = new Base32();
         byte[] bytes = base32.decode(secretKey);
         String hexKey = Hex.encodeHexString(bytes);
@@ -129,7 +155,7 @@ public class UserService {
     public String get2FactorsBarCode(String username) {
         User user = this.getUserByUsername(username);
         if (user != null) {
-            String secretKey = user.getTwoFactorSecret();
+            String secretKey = decryptTwoFactorsSecret(user);
             String issuer = AppConstants.APPLICATION_NAME;
             return buildGoogleAuthenticatorBarCode(secretKey, username, issuer);
         } else {
@@ -153,10 +179,11 @@ public class UserService {
         if (StringUtils.equals(authenticationRequest.getTwoFactorsTotp(), null)) {
             return false;
         } else {
-            // Get user totp
+            // Get user
             User user = getUserByUsername(authenticationRequest.getUsername());
-            String secretKey = user.getTwoFactorSecret();
+            if (user == null) return false;
             //Verify Totp
+            String secretKey = decryptTwoFactorsSecret(user);
             String totpInput = authenticationRequest.getTwoFactorsTotp();
             return Objects.equals(totpInput, getTOTPCode(secretKey));
         }

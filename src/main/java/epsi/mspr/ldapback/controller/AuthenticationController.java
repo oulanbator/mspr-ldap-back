@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
 
-import antlr.StringUtils;
 import epsi.mspr.ldapback.utils.BrowsersUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

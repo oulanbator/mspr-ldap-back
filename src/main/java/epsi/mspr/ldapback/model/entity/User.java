@@ -20,6 +20,7 @@ public class User {
     private String email;
 
     private String twoFactorSecret;
+    private String secretSalt;
     private boolean twoFactorVerified;
 
     //navigateur et IP
@@ -31,12 +32,13 @@ public class User {
         this.twoFactorVerified = false;
     }
 
-    public User(Long id, String username, String password, String email, String twoFactorSecret, boolean twoFactorVerified, String userAgent, String ipList) {
+    public User(Long id, String username, String password, String email, String twoFactorSecret, String secretSalt, boolean twoFactorVerified, String userAgent, String ipList) {
         this.id = id;
         this.username = username;
         this.password = password;
         this.email = email;
         this.twoFactorSecret = twoFactorSecret;
+        this.secretSalt = secretSalt;
         this.twoFactorVerified = twoFactorVerified;
         this.userAgent = userAgent;
         this.ipList = ipList;
@@ -104,6 +106,22 @@ public class User {
 
     public void setIpList(String ipList) {
         this.ipList = ipList;
+    }
+
+    public String getSecretSalt() {
+        return secretSalt;
+    }
+
+    public void setSecretSalt(String secretSalt) {
+        this.secretSalt = secretSalt;
+    }
+
+    public String getUserAgent() {
+        return userAgent;
+    }
+
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
     }
 
     @Override
