@@ -112,14 +112,14 @@ public class UserService {
         user.setIpList(newList);
     }
 
-    public void checkIP(String username, String ip){
+    public boolean checkIfIpExists(String username, String ip){
         User user = getUserByUsername(username);
         List<String> ips = ListUtils.stringToList(user.getIpList());
         if(!ips.contains(ip)){
-            //todo: envoi mail de signalement
-            //todo: bloquer si ip etrangere
             addIP(username, ip);
+            return false;
         }
+        return true;
     }
 
     private void addAgent(String username, String agent){
@@ -128,13 +128,14 @@ public class UserService {
         user.setAgentList(newList);
     }
 
-    public void checkAgent(String username, String agent){
+    public boolean checkAgent(String username, String agent){
         User user = getUserByUsername(username);
         List<String> agents = ListUtils.stringToList(user.getIpList());
         if(!agents.contains(agent)){
-            //todo: envoi mail qui vise à confirmer la connexion
             addAgent(username, agent);
+            return false;
         }
+        return true;
     }
 
     private static String generateSecretKey() {

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
 
-import epsi.mspr.ldapback.utils.BrowsersUtils;
+import epsi.mspr.ldapback.utils.requestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
@@ -42,7 +42,7 @@ public class AuthenticationController {
     @PostMapping("/authenticate")
     public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequest authenticationRequest, HttpServletRequest request) {
         String ip = request.getRemoteHost();
-        String browser = BrowsersUtils.getInitialsFromAgent(request.getHeader("User-Agent"));
+        String browser = requestInfo.getInitialsFromAgent(request.getHeader("User-Agent"));
 
         // TODO : [SECURITY]  Gérer l'injection SQL ici ? Avant de passer à la suite ?
         
@@ -106,7 +106,7 @@ public class AuthenticationController {
             StandardApiResponse response = new StandardApiResponse(STATUS_FAIL, MSG_ACTIVATE_TWO_FACTORS);
             // set barCode to response
             String barCode = this.userService.get2FactorsBarCode(username);
-            response.setData(new ArrayList<>(Collections.singleton(barCode))); // TODO : revoir ça ?
+            response.setData(new ArrayList<>(Collections.singleton(barCode)));
             return ResponseEntity.ok(response);
         }
 
@@ -147,15 +147,29 @@ public class AuthenticationController {
         // 2 - Check 2FA code validity
         boolean TOPTSuccess = this.userService.totpVerified(authenticationRequest);
         if (TOPTSuccess) {
-            //todo: check ip et navigateur
-            this.userService.checkIP(username, ip);
-            this.userService.checkAgent(username, browser);
-
-            // If auth succeed and TOTP valid, build response with JWT token
-            // TODO : [SECURITY] vérifier les infos passées dans ce token dans customUserDetailsService
-            final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            final String jwt = jwtService.generateToken(userDetails);
-            return ResponseEntity.ok(new StandardApiResponse(STATUS_SUCCESS, jwt));
+            try {
+                if(!requestInfo.isIpFrench(ip)){
+                    return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, MSG_FOREIGNER_ERROR));
+                }else{
+                    if(!this.userService.checkAgent(username, browser)){
+                        //todo: envoi mail qui vise à confirmer la connexion
+                        send(userService.getUserByUsername(username).getEmail(), "Vous vous êtes connecté depuis un nouveau navigateur. Veuillez confirmer votre identité en cliquant sur ce lien:");
+                        return ResponseEntity.ok(new StandardApiResponse(STATUS_FAIL, MSG_CONFIRM_MAIL));
+                    }else{
+                        if(!this.userService.checkIfIpExists(username, ip)){
+                            send(userService.getUserByUsername(username).getEmail(), "Vous vous êtes connecté avec une nouvelle adresse IP");
+                        }
+                        // If auth succeed and TOTP valid, build response with JWT token
+                        // TODO : [SECURITY] vérifier les infos passées dans ce token dans customUserDetailsService
+                        final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                        final String jwt = jwtService.generateToken(userDetails);
+                        return ResponseEntity.ok(new StandardApiResponse(STATUS_SUCCESS, jwt));
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, e.getMessage()));
+            }
         } else {
             // TOTP code incorrect : return error response
             // TODO : [SECURITY] Gérer ici les tentatives successives avec erreur de TOTP code ?
@@ -197,14 +211,12 @@ public class AuthenticationController {
     public JavaMailSender emailSender;
 
     @GetMapping("/sendmail")
-    public String send() {
+    public String send(String mail, String message) {
 
-        String recipientAddress = "victor.matheron@gmail.com";
         String subject = "Email de test";
-        String message = "Vous vous êtes connecté avec une nouvelle adresse IP";
 
         SimpleMailMessage email = new SimpleMailMessage();
-        email.setTo(recipientAddress);
+        email.setTo(mail);
         email.setSubject(subject);
         email.setText(message);
 
@@ -212,6 +224,11 @@ public class AuthenticationController {
         this.emailSender.send(email);
 
         return "Email Sent!";
+    }
+
+    @GetMapping("/confirmIdentity")
+    public void confirmIdentity(){
+        //todo: arriver ici quand envoi de mail de confirmation
     }
 
 }
