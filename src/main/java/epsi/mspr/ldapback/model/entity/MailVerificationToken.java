@@ -7,13 +7,14 @@ import java.util.Date;
 
 @Entity
 public class MailVerificationToken {
-    private static final int EXPIRATION = 60 * 24;
+//    private static final int EXPIRATION = 60 * 24;
+    private static final int EXPIRATION = 1;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String token;
-    private Long userid;
+    private String username;
     private String browser;
     private Date expiryDate;
 
@@ -27,9 +28,9 @@ public class MailVerificationToken {
     public MailVerificationToken() {
     }
 
-    public MailVerificationToken(String token, Long userid, String browser) {
+    public MailVerificationToken(String token, String username, String browser) {
         this.token = token;
-        this.userid = userid;
+        this.username = username;
         this.browser = browser;
         this.expiryDate = calculateExpiryDate(EXPIRATION);
     }
@@ -58,19 +59,19 @@ public class MailVerificationToken {
         this.expiryDate = expiryDate;
     }
 
-    public Long getUserid() {
-        return userid;
-    }
-
-    public void setUserid(Long userid) {
-        this.userid = userid;
-    }
-
     public String getBrowser() {
         return browser;
     }
 
     public void setBrowser(String browser) {
         this.browser = browser;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

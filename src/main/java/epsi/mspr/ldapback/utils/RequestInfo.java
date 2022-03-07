@@ -31,7 +31,7 @@ public class RequestInfo {
             DatabaseReader dbReader = new DatabaseReader.Builder(database).build();
             CityResponse response = dbReader.city(InetAddress.getByName(ip));
             String countryName = response.getCountry().getName();
-            System.out.println("Connecting with IP address from : " + countryName);
+            System.out.println("Country : " + countryName);
             return StringUtils.equals(countryName, "France");
         } catch (Exception e) {
             System.out.println("Error while checking IP address in local database");

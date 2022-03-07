@@ -10,25 +10,39 @@ import java.util.UUID;
 
 @Service
 public class MailService {
+
     @Autowired
     private JavaMailSender emailSender;
     @Autowired
     private UserService userService;
 
+    private final String domain = "https://localhost:4200";
+
+
     public void sendBrowserCheckEmail(User user, String browser) {
         // Create token
         String token = UUID.randomUUID().toString();
-        this.userService.createVerificationToken(token, user.getId(), browser);
+        this.userService.createVerificationToken(token, user.getUsername(), browser);
 
         // Create URL to check token
-        String confirmationUri = "https://localhost:4200/confirm-identity?token=" + token;
+        String confirmationUri = domain + "/verify-identity?token=" + token;
 
         // Create message elements
-        String subject = "MSPR - Connexion inhabituelle";
+        String emailAddress = "victor.matheron@gmail.com";
+        String subject = "MSPR - Connexion suspecte";
         String message = "Vous vous êtes connecté depuis un nouveau navigateur.\n" +
                 "Veuillez confirmer votre identité en cliquant sur ce lien : \n" +
                 confirmationUri;
+
+        send(emailAddress, subject, message);
+    }
+
+    public void sendNewIpNotificationEmail(User user, String ip) {
         String emailAddress = "victor.matheron@gmail.com";
+        String subject = "MSPR - Connexion inhabituelle";
+        String message = "Vous vous êtes connecté depuis une nouvelle adresse IP : " + ip + "\n\n" +
+                "Si ce n'était pas vous, vos identifiants sont probablement compromis.\n" +
+                "Merci de contacter au plus vite les services informatiques, et modifier dès à présent votre mot de passe.";
 
         send(emailAddress, subject, message);
     }

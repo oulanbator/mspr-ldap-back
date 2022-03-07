@@ -13,7 +13,7 @@ public class AppConstants {
     public static final String MSG_TOTP_ERROR = "Error - Invalid one-time code";
     public static final String MSG_FOREIGNER_ERROR = "Error - This service is unavailable in your country";
     public static final String MSG_ACCOUNT_ACTIVATED = "Success - Two factors authentication activated";
-    public static final String MSG_CONFIRM_MAIL = "Go onto your mail to confirm your identity";
+    public static final String MSG_CONFIRM_MAIL = "Suspect Connection - Go onto your mail to confirm your identity";
 
     public static final String MSG_SERVER_ERROR_IS = "Server error : ";
     public static final String MSG_SERVER_ERROR_UNKNOWN = "Unknown server error";

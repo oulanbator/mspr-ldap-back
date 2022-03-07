@@ -1,15 +1,16 @@
 package epsi.mspr.ldapback.controller;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Objects;
 
+import epsi.mspr.ldapback.model.entity.MailVerificationToken;
 import epsi.mspr.ldapback.service.MailService;
 import epsi.mspr.ldapback.utils.RequestInfo;
+import org.apache.commons.codec.binary.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -46,8 +47,6 @@ public class AuthenticationController {
     public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequest authenticationRequest, HttpServletRequest request) {
         String ip = request.getRemoteHost();
         String browser = RequestInfo.getInitialsFromAgent(request.getHeader("User-Agent"));
-
-        // TODO : [SECURITY]  Gérer l'injection SQL ici ? Avant de passer à la suite ?
         
         // ###########################################################################
         // STEP 1 - Check LDAP credentials - Check if 2FA is activated
@@ -64,7 +63,7 @@ public class AuthenticationController {
             if (!user.isTwoFactorVerified()) throw new DisabledException("Two factors must be activated for : " + username);
         
         } catch (DisabledException e) {
-            return handleDisabledException(authenticationRequest);
+            return handleDisabledException(authenticationRequest, ip, browser);
         
         } catch (BadCredentialsException e) {
             // TODO : [SECURITY] Gérer ici les tentatives successives avec mauvais credentials pour un utilisateur existant ?
@@ -98,12 +97,12 @@ public class AuthenticationController {
      * @param authenticationRequest
      * @return ResponseEntity
      */
-    private ResponseEntity<?> handleDisabledException(AuthenticationRequest authenticationRequest) {
+    private ResponseEntity<?> handleDisabledException(AuthenticationRequest authenticationRequest, String ip, String browser) {
         String username = authenticationRequest.getUsername();
-        String TOTP = authenticationRequest.getTwoFactorsTotp();
-        
+        String totp = authenticationRequest.getTwoFactorsTotp();
+
         // Case 1 - First login for this user : needs to activate 2FA
-        if (Objects.equals(TOTP, "")) {
+        if (StringUtils.equals(totp, "")) {
             // Generate 2FA secret in user entity and build fail response
             this.userService.initializeTwoFactorsSecret(username);
             StandardApiResponse response = new StandardApiResponse(STATUS_FAIL, MSG_ACTIVATE_TWO_FACTORS);
@@ -114,9 +113,9 @@ public class AuthenticationController {
         }
 
         // Case 2 - User is activating 2FA
-        Boolean TOTPSuccess = this.userService.totpVerified(authenticationRequest); //user enter the 6 numbers
+        boolean TOTPSuccess = this.userService.totpVerified(totp, username); //user enter the 6 numbers
         if (TOTPSuccess) {    // TOTP Code is valid : activate account
-            this.userService.activateAccount(username);
+            this.userService.activateAccount(username, ip, browser);
             return ResponseEntity.ok(new StandardApiResponse(STATUS_SUCCESS, MSG_ACCOUNT_ACTIVATED));
         } else {
             return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, MSG_TOTP_ERROR));
@@ -140,39 +139,35 @@ public class AuthenticationController {
      */
     private ResponseEntity<?> handleSecondFactorLogin(AuthenticationRequest authenticationRequest, String ip, String browser) {
         String username = authenticationRequest.getUsername();
-        String TOTP = authenticationRequest.getTwoFactorsTotp();
+        String totp = authenticationRequest.getTwoFactorsTotp();
 
         // 1 - Credentials ok : Check if 2FA code is present in request
-        if (Objects.equals(TOTP, "")) {
+        if (Objects.equals(totp, "")) {
             return ResponseEntity.ok(new StandardApiResponse(STATUS_SUCCESS, MSG_ENTER_TOTP));
         }
 
         // 2 - Check 2FA code validity
-        boolean TOPTSuccess = this.userService.totpVerified(authenticationRequest);
+        boolean TOPTSuccess = this.userService.totpVerified(totp, username);
         if (TOPTSuccess) {
-            try {
-                if(!RequestInfo.isIpFrench(ip)){
-                    return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, MSG_FOREIGNER_ERROR));
-                }else{
-                    if(!this.userService.checkAgent(username, browser)){
-                        //todo: envoi mail qui vise à confirmer la connexion
-                        mailService.sendBrowserCheckEmail(userService.getUserByUsername(username), browser);
-                        return ResponseEntity.ok(new StandardApiResponse(STATUS_FAIL, MSG_CONFIRM_MAIL));
-                    }else{
-                        if(!this.userService.checkIfIpExists(username, ip)){
-                            send(userService.getUserByUsername(username).getEmail(), "Vous vous êtes connecté avec une nouvelle adresse IP");
-                        }
-                        // If auth succeed and TOTP valid, build response with JWT token
-                        // TODO : [SECURITY] vérifier les infos passées dans ce token dans customUserDetailsService
-                        final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                        final String jwt = jwtService.generateToken(userDetails);
-                        return ResponseEntity.ok(new StandardApiResponse(STATUS_SUCCESS, jwt));
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, e.getMessage()));
+            // Erreur si IP étrangère
+            if (!RequestInfo.isIpFrench(ip)) {
+                return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, MSG_FOREIGNER_ERROR));
             }
+            // Mail de confirmation si nouveau navigateur
+            if (!this.userService.checkAgent(username, browser)) {
+                mailService.sendBrowserCheckEmail(userService.getUserByUsername(username), browser);
+                return ResponseEntity.ok(new StandardApiResponse(STATUS_FAIL, MSG_CONFIRM_MAIL));
+            }
+            // Mail informatif si nouvelle adresse ip
+            if (!this.userService.checkIfIpExists(username, ip)) {
+                mailService.sendNewIpNotificationEmail(userService.getUserByUsername(username), ip);
+//                send(userService.getUserByUsername(username).getEmail(), "Vous vous êtes connecté avec une nouvelle adresse IP");
+            }
+            // Envoi du JWT Token et Status Success
+            final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            final String jwt = jwtService.generateToken(userDetails);
+            return ResponseEntity.ok(new StandardApiResponse(STATUS_SUCCESS, jwt));
+
         } else {
             // TOTP code incorrect : return error response
             // TODO : [SECURITY] Gérer ici les tentatives successives avec erreur de TOTP code ?
@@ -209,29 +204,29 @@ public class AuthenticationController {
         return ResponseEntity.ok(response);
     }
 
-    //debug pour mail process
-    @Autowired
-    public JavaMailSender emailSender;
-
-    @GetMapping("/sendmail")
-    public String send(String mail, String message) {
-
-        String subject = "Email de test";
-
-        SimpleMailMessage email = new SimpleMailMessage();
-        email.setTo(mail);
-        email.setSubject(subject);
-        email.setText(message);
-
-        // Send Message!
-        this.emailSender.send(email);
-
-        return "Email Sent!";
-    }
-
-    @GetMapping("/confirmIdentity")
-    public void confirmIdentity(){
-        //todo: arriver ici quand envoi de mail de confirmation
+    @GetMapping("/verify-identity")
+    public ResponseEntity<StandardApiResponse> confirmIdentity(@RequestParam String token){
+        System.out.println(token);
+        MailVerificationToken tokenEntity = userService.getVerificationToken(token);
+        // Si token trouvé dans la BDD
+        if (tokenEntity != null) {
+            // Token expiré : renvoie Status Fail
+            Calendar cal = Calendar.getInstance();
+            if ((tokenEntity.getExpiryDate().getTime() - cal.getTime().getTime()) <= 0) {
+                StandardApiResponse response = new StandardApiResponse(STATUS_FAIL);
+                return ResponseEntity.ok(response);
+            }
+            // Token valide : renvoie Status Success
+            String username = tokenEntity.getUsername();
+            String agent = tokenEntity.getBrowser();
+            userService.addAgent(username, agent);
+            StandardApiResponse response = new StandardApiResponse(STATUS_SUCCESS);
+            return ResponseEntity.ok(response);
+        } else {
+            // Token non trouvé / non valide : renvoie Status error
+            StandardApiResponse response = new StandardApiResponse(STATUS_ERROR);
+            return ResponseEntity.ok(response);
+        }
     }
 
 }

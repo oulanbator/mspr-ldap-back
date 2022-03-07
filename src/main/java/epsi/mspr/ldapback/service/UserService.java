@@ -105,7 +105,13 @@ public class UserService {
         return userSecret;
     }
 
-    public void activateAccount(String username) {
+    public void activateAccount(String username, String ip, String agent) {
+        activateUser(username);
+        addAgent(username, agent);
+        addIP(username, ip);
+    }
+
+    public void activateUser(String username) {
         User user = getUserByUsername(username);
         user.setTwoFactorVerified(true);
         saveUser(user);
@@ -117,6 +123,14 @@ public class UserService {
         User user = getUserByUsername(username);
         String newList = ListUtils.addToList(user.getIpList(), ip);
         user.setIpList(newList);
+        saveUser(user);
+    }
+
+    public void addAgent(String username, String agent){
+        User user = getUserByUsername(username);
+        String newList = ListUtils.addToList(user.getAgentList(), agent);
+        user.setAgentList(newList);
+        saveUser(user);
     }
 
     public boolean checkIfIpExists(String username, String ip){
@@ -129,25 +143,12 @@ public class UserService {
         return true;
     }
 
-    private void addAgent(String username, String agent){
-        User user = getUserByUsername(username);
-        String newList = ListUtils.addToList(user.getAgentList(), agent);
-        user.setAgentList(newList);
-    }
-
     public boolean checkAgent(String username, String agent){
-        System.out.println("Checking useragent");
-        System.out.println("Agent : " + agent);
         User user = getUserByUsername(username);
-        System.out.println("User : " + username);
-        List<String> agents = ListUtils.stringToList(user.getIpList());
-        System.out.println("Agents : " + agents);
+        List<String> agents = ListUtils.stringToList(user.getAgentList());
         if(!agents.contains(agent)){
-            System.out.println("No agent found");
-            addAgent(username, agent);
             return false;
         }
-        System.out.println("Agent found : return true");
         return true;
     }
 
@@ -190,25 +191,25 @@ public class UserService {
         }
     }
 
-    public boolean totpVerified(AuthenticationRequest authenticationRequest) {
+    public boolean totpVerified(String totp, String username) {
         // Check Totp presence
-        if (StringUtils.equals(authenticationRequest.getTwoFactorsTotp(), null)) {
+        if (StringUtils.equals(totp, null)) {
             return false;
         } else {
             // Get user
-            User user = getUserByUsername(authenticationRequest.getUsername());
+            User user = getUserByUsername(username);
             if (user == null) return false;
             //Verify Totp
             String secretKey = decryptTwoFactorsSecret(user);
-            String totpInput = authenticationRequest.getTwoFactorsTotp();
+            String totpInput = totp;
             return Objects.equals(totpInput, getTOTPCode(secretKey));
         }
     }
 
     // ---------- EMAIL VERIFICATION ----------
 
-    public MailVerificationToken createVerificationToken(String token, Long userid, String browser) {
-        MailVerificationToken newToken = new MailVerificationToken(token, userid, browser);
+    public MailVerificationToken createVerificationToken(String token, String username, String browser) {
+        MailVerificationToken newToken = new MailVerificationToken(token, username, browser);
         return this.mailVerificationTokenRepository.save(newToken);
     }
 
