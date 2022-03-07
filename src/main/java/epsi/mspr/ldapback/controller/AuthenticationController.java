@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
 
-import epsi.mspr.ldapback.utils.requestInfo;
+import epsi.mspr.ldapback.service.MailService;
+import epsi.mspr.ldapback.utils.RequestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
@@ -38,11 +39,13 @@ public class AuthenticationController {
     private UserService userService;
     @Autowired
     private JwtService jwtService;
+    @Autowired
+    private MailService mailService;
 
     @PostMapping("/authenticate")
     public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequest authenticationRequest, HttpServletRequest request) {
         String ip = request.getRemoteHost();
-        String browser = requestInfo.getInitialsFromAgent(request.getHeader("User-Agent"));
+        String browser = RequestInfo.getInitialsFromAgent(request.getHeader("User-Agent"));
 
         // TODO : [SECURITY]  Gérer l'injection SQL ici ? Avant de passer à la suite ?
         
@@ -148,12 +151,12 @@ public class AuthenticationController {
         boolean TOPTSuccess = this.userService.totpVerified(authenticationRequest);
         if (TOPTSuccess) {
             try {
-                if(!requestInfo.isIpFrench(ip)){
+                if(!RequestInfo.isIpFrench(ip)){
                     return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, MSG_FOREIGNER_ERROR));
                 }else{
                     if(!this.userService.checkAgent(username, browser)){
                         //todo: envoi mail qui vise à confirmer la connexion
-                        send(userService.getUserByUsername(username).getEmail(), "Vous vous êtes connecté depuis un nouveau navigateur. Veuillez confirmer votre identité en cliquant sur ce lien:");
+                        mailService.sendBrowserCheckEmail(userService.getUserByUsername(username), browser);
                         return ResponseEntity.ok(new StandardApiResponse(STATUS_FAIL, MSG_CONFIRM_MAIL));
                     }else{
                         if(!this.userService.checkIfIpExists(username, ip)){

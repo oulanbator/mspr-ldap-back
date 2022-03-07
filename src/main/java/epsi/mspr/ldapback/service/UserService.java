@@ -5,7 +5,10 @@ import java.net.URLEncoder;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
+import epsi.mspr.ldapback.model.entity.MailVerificationToken;
+import epsi.mspr.ldapback.model.repository.MailVerificationTokenRepository;
 import epsi.mspr.ldapback.utils.ListUtils;
 import org.apache.commons.codec.binary.Base32;
 import org.apache.commons.codec.binary.Hex;
@@ -33,11 +36,11 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private MailVerificationTokenRepository mailVerificationTokenRepository;
 
 
-    // Basic CRUD :
-    // - Create / Update => saveUser()
-    // - Read => getUser() (...)
+    // ---------- Basic CRUD ----------
 
     public User getUser(Long userid) {
         return this.userRepository.findById(userid).get();
@@ -74,6 +77,8 @@ public class UserService {
         }
     }
 
+    // ---------- 2FA secret & activation ----------
+
     public User initializeTwoFactorsSecret(String username) {
         User user = getUserByUsername(username);
         if (user == null) return null;
@@ -106,6 +111,8 @@ public class UserService {
         saveUser(user);
     }
 
+    // ---------- IP and UserAgent ----------
+
     private void addIP(String username, String ip){
         User user = getUserByUsername(username);
         String newList = ListUtils.addToList(user.getIpList(), ip);
@@ -129,14 +136,22 @@ public class UserService {
     }
 
     public boolean checkAgent(String username, String agent){
+        System.out.println("Checking useragent");
+        System.out.println("Agent : " + agent);
         User user = getUserByUsername(username);
+        System.out.println("User : " + username);
         List<String> agents = ListUtils.stringToList(user.getIpList());
+        System.out.println("Agents : " + agents);
         if(!agents.contains(agent)){
+            System.out.println("No agent found");
             addAgent(username, agent);
             return false;
         }
+        System.out.println("Agent found : return true");
         return true;
     }
+
+    // ---------- TOTP ----------
 
     private static String generateSecretKey() {
         SecureRandom random = new SecureRandom();
@@ -187,6 +202,22 @@ public class UserService {
             String secretKey = decryptTwoFactorsSecret(user);
             String totpInput = authenticationRequest.getTwoFactorsTotp();
             return Objects.equals(totpInput, getTOTPCode(secretKey));
+        }
+    }
+
+    // ---------- EMAIL VERIFICATION ----------
+
+    public MailVerificationToken createVerificationToken(String token, Long userid, String browser) {
+        MailVerificationToken newToken = new MailVerificationToken(token, userid, browser);
+        return this.mailVerificationTokenRepository.save(newToken);
+    }
+
+    public MailVerificationToken getVerificationToken(String VerificationToken) {
+        Optional<MailVerificationToken> token = this.mailVerificationTokenRepository.findByToken(VerificationToken);
+        if (token.isPresent()) {
+            return token.get();
+        } else {
+            return null;
         }
     }
 }
