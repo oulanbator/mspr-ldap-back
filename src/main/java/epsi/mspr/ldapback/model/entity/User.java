@@ -28,8 +28,8 @@ public class User {
     private String userAgent;
     private String ipAddress;
     
-    private int attempts;
-    private boolean isBlocked;
+    private int attempts = 0;
+    private boolean isBlocked = false;
 
     public User() {
         this.twoFactorVerified = false;
@@ -132,8 +132,9 @@ public class User {
         return this.attempts;
     }
     
-    public void addAttempt(){
-        if (++this.attempts >= 5){
+    public void addAttempts(){
+        this.attempts++;
+        if (this.attempts >= 5){
             this.block();
         }
     }

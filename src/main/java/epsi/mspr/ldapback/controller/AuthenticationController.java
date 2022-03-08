@@ -63,13 +63,13 @@ public class AuthenticationController {
         } catch (DisabledException e) {
             return handleDisabledException(authenticationRequest);
         
+        } catch (BlockedException e) {
+            return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, MSG_ERROR_BLOCKED));
+            
         } catch (BadCredentialsException e) {
             this.userService.addAttempt(authenticationRequest.getUsername());
             // TODO : [SECURITY] Gérer ici les tentatives successives avec mauvais credentials pour un utilisateur existant ?
             return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, MSG_BAD_CREDENTIALS));
-        
-        } catch (BlockedException e) {
-            return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, MSG_ERROR_BLOCKED));
         
         } catch (Exception e) {
             // TODO : [CODE MORT] Supprimer ?

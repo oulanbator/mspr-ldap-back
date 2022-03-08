@@ -63,11 +63,17 @@ public class UserService {
         }
     }
     
-    public boolean addAttempt(String username){
-        User user = this.getUserByUsername(username);
-        user.addAttempt();
-        System.out.println(user.getAttempts());
-        return !user.isBlocked();
+    public void addAttempt(String username){
+        //String realusername = username.split("@")[0];
+        //System.out.println(realusername);
+        User user = getUserByUsername(username);
+        if (user != null){
+            System.out.println(user.getId() + user.getUsername());
+            user.addAttempts();
+            System.out.println(user.getAttempts());
+            saveUser(user);
+        }
+        //return !user.isBlocked();
     }
     
     public void clearAttempt(String username){
