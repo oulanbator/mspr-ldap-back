@@ -26,11 +26,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   protected void configure(HttpSecurity http) throws Exception {
     http.cors();
     http.csrf().disable()
-      .authorizeRequests()
-      .antMatchers("/api/authenticate").permitAll()
-      .antMatchers("/api/verify-identity").permitAll()
-      .anyRequest().fullyAuthenticated()
-      .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+            .authorizeRequests()
+            .antMatchers("/api/authenticate").permitAll()
+            .antMatchers("/api/verify-identity").permitAll()
+            .anyRequest().fullyAuthenticated()
+            .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     http.addFilterBefore(this.jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
     // http.logout().logoutSuccessHandler((new HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK)));
   }

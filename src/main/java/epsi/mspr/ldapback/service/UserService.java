@@ -62,10 +62,12 @@ public class UserService {
     public User loadLdapAuthenticatedUser(String username) {
         User user = getUserByUsername(username);
         if (user != null) {
-            return user;
+            user.setBadCredentialsAttempts(0);
+            return saveUser(user);
         } else {
             User newUser = new User();
             newUser.setUsername(username);
+            newUser.setBadCredentialsAttempts(0);
             return saveUser(newUser);
         }
     }
@@ -219,6 +221,20 @@ public class UserService {
             return token.get();
         } else {
             return null;
+        }
+    }
+
+    // ---------- BRUTE FORCE GUARD ----------
+
+    public void badCredentialAttempt(String username) {
+        User user = getUserByUsername(username);
+        if (user != null) {
+            int attempts = user.getBadCredentialsAttempts();
+            user.setBadCredentialsAttempts(attempts + 1);
+            if (user.getBadCredentialsAttempts() > 5) {
+                user.setBlocked(true);
+            }
+            userRepository.save(user);
         }
     }
 }

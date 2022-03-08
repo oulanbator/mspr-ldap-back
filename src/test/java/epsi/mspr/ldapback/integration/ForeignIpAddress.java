@@ -54,10 +54,10 @@ public class ForeignIpAddress {
                         .content(body.toString()))
                 .andExpect(status().is2xxSuccessful())
                 .andDo(result -> {
-                    System.out.println("\n***** FIRST CALL (no totp) *****");
+                    System.out.println("\n***** PREMIER APPEL (pas de totp) : AUTHENTIFICATION LDAP *****");
                     System.out.println("Route : /api/authenticate");
                     System.out.println("Status : " + result.getResponse().getStatus());
-                    System.out.println("Result : Got secret QRCode !");
+                    System.out.println("Expected result : réception du QRCode");
                     System.out.println("Response body : ");
                     System.out.println(result.getResponse().getContentAsString());
                 });
@@ -84,10 +84,10 @@ public class ForeignIpAddress {
                         .content(body.toString()))
                 .andExpect(status().is2xxSuccessful())
                 .andDo(result -> {
-                    System.out.println("\n***** SECOND CALL (with totp) *****");
+                    System.out.println("\n***** SECOND APPEL (avec totp) : ACTIVATION 2FA *****");
                     System.out.println("Route : /api/authenticate");
                     System.out.println("Status : " + result.getResponse().getStatus());
-                    System.out.println("Result : Account is activated !");
+                    System.out.println("Expected result : activation du compte utilisateur");
                     System.out.println("Response body : ");
                     System.out.println(result.getResponse().getContentAsString());
                 });
@@ -112,10 +112,10 @@ public class ForeignIpAddress {
                         .content(body.toString()))
                 .andExpect(status().is2xxSuccessful())
                 .andDo(result -> {
-                    System.out.println("\n***** THIRD CALL (final connection with totp) *****");
+                    System.out.println("\n***** TROISIEME APPEL (avec totp) : CONNEXION A l'APPLICATION *****");
                     System.out.println("Route : /api/authenticate");
                     System.out.println("Status : " + result.getResponse().getStatus());
-                    System.out.println("Result : User allowed to connect (or not), regarding IP address");
+                    System.out.println("Expected result : Utilisateur connecté (ou non), selon l'adresse IP");
                     System.out.println("IP Address : " + ipAddress);
                     RequestInfo.isIpFrench(ipAddress);
                     System.out.println("Response body : ");

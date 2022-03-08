@@ -8,6 +8,7 @@ public class AppConstants {
     public static final String STATUS_ERROR = "error";
 
     public static final String MSG_BAD_CREDENTIALS = "Bad credentials, verify username and password";
+    public static final String MSG_BLOCKED_ACCOUNT = "Error - Account blocked. Please contact IT services.";
     public static final String MSG_ACTIVATE_TWO_FACTORS = "Activation - You need to activate two factors authentication";
     public static final String MSG_ENTER_TOTP = "TOTP - Please enter your time-based code";
     public static final String MSG_TOTP_ERROR = "Error - Invalid one-time code";

@@ -1,9 +1,6 @@
 package epsi.mspr.ldapback.controller;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Objects;
+import java.util.*;
 
 import epsi.mspr.ldapback.model.entity.MailVerificationToken;
 import epsi.mspr.ldapback.service.MailService;
@@ -45,9 +42,21 @@ public class AuthenticationController {
 
     @PostMapping("/authenticate")
     public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequest authenticationRequest, HttpServletRequest request) {
+
+        // Récupère informations de la requête HTTP
         String ip = request.getRemoteHost();
         String browser = RequestInfo.getInitialsFromAgent(request.getHeader("User-Agent"));
-        
+
+        // Mise en forme du userid saisi pour avoir un username valide
+        String userid = authenticationRequest.getUsername();
+        if (userid.contains("@")) {
+            int index = userid.indexOf("@");
+            String user = userid.substring(0,index);
+            authenticationRequest.setUsername(user.toUpperCase(Locale.ROOT) + "@chatelet.local");
+        } else {
+            authenticationRequest.setUsername(userid.toUpperCase(Locale.ROOT) + "@chatelet.local");
+        }
+
         // ###########################################################################
         // STEP 1 - Check LDAP credentials - Check if 2FA is activated
         // ###########################################################################
@@ -59,6 +68,10 @@ public class AuthenticationController {
             authenticationManager.authenticate(credentialToken);
             // If user exists in LDAP, load/create user in backend database
             User user = this.userService.loadLdapAuthenticatedUser(username);
+            // If user is blocked return error response
+            if (user.isBlocked()) {
+                return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, MSG_BLOCKED_ACCOUNT));
+            }
             // If 2FA not activated thow Exception
             if (!user.isTwoFactorVerified()) throw new DisabledException("Two factors must be activated for : " + username);
         
@@ -66,11 +79,15 @@ public class AuthenticationController {
             return handleDisabledException(authenticationRequest, ip, browser);
         
         } catch (BadCredentialsException e) {
-            // TODO : [SECURITY] Gérer ici les tentatives successives avec mauvais credentials pour un utilisateur existant ?
+            // Stop bad credentials checks if user is already blocked
+            User user = userService.getUserByUsername(authenticationRequest.getUsername());
+            if (user != null && user.isBlocked()) {
+                return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, MSG_BLOCKED_ACCOUNT));
+            }
+            userService.badCredentialAttempt(authenticationRequest.getUsername());
             return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, MSG_BAD_CREDENTIALS));
         
         } catch (Exception e) {
-            // TODO : [CODE MORT] Supprimer ?
             e.printStackTrace();
             return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, MSG_SERVER_ERROR_UNKNOWN));
         }
@@ -94,7 +111,7 @@ public class AuthenticationController {
      *      - User is still disabled as 2FA is not activated yet
      *      - User is validating TOTP code, therefore it is present in the request
      * 
-     * @param authenticationRequest
+     * @param authenticationRequest body of the request
      * @return ResponseEntity
      */
     private ResponseEntity<?> handleDisabledException(AuthenticationRequest authenticationRequest, String ip, String browser) {
@@ -134,7 +151,7 @@ public class AuthenticationController {
      *      - TOTP valid => send success response with JWT token
      *      - TOTP incorrect => send error response
      * 
-     * @param authenticationRequest
+     * @param authenticationRequest body of the request
      * @return ResponseEntity
      */
     private ResponseEntity<?> handleSecondFactorLogin(AuthenticationRequest authenticationRequest, String ip, String browser) {
@@ -170,7 +187,6 @@ public class AuthenticationController {
 
         } else {
             // TOTP code incorrect : return error response
-            // TODO : [SECURITY] Gérer ici les tentatives successives avec erreur de TOTP code ?
             return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, MSG_TOTP_ERROR));
         }
     }

@@ -19,20 +19,25 @@ public class User {
     @Column(unique = true)  // TODO : delete this field ?
     private String email;
 
+    // 2FA
     private String twoFactorSecret;
     private String secretSalt;
     private boolean twoFactorVerified;
 
-    //navigateur et IP
+    // navigateur et IP
     private String userAgent = "";
     private String ipList = "";
+
+    // brute force
+    private boolean blocked;
+    private int badCredentialsAttempts;
 
 
     public User() {
         this.twoFactorVerified = false;
     }
 
-    public User(Long id, String username, String password, String email, String twoFactorSecret, String secretSalt, boolean twoFactorVerified, String userAgent, String ipList) {
+    public User(Long id, String username, String password, String email, String twoFactorSecret, String secretSalt, boolean twoFactorVerified, String userAgent, String ipList, boolean blocked, int badCredentialsAttempts) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -42,6 +47,8 @@ public class User {
         this.twoFactorVerified = twoFactorVerified;
         this.userAgent = userAgent;
         this.ipList = ipList;
+        this.blocked = blocked;
+        this.badCredentialsAttempts = badCredentialsAttempts;
     }
 
     public Long getId() {
@@ -122,6 +129,22 @@ public class User {
 
     public void setUserAgent(String userAgent) {
         this.userAgent = userAgent;
+    }
+
+    public boolean isBlocked() {
+        return blocked;
+    }
+
+    public void setBlocked(boolean blocked) {
+        this.blocked = blocked;
+    }
+
+    public int getBadCredentialsAttempts() {
+        return badCredentialsAttempts;
+    }
+
+    public void setBadCredentialsAttempts(int badCredentialsAttempts) {
+        this.badCredentialsAttempts = badCredentialsAttempts;
     }
 
     @Override
