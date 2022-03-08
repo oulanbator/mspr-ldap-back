@@ -1,6 +1,8 @@
 package epsi.mspr.ldapback.service;
 
+import epsi.mspr.ldapback.model.entity.MailVerificationToken;
 import epsi.mspr.ldapback.model.entity.User;
+import epsi.mspr.ldapback.model.repository.MailVerificationTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -15,6 +17,8 @@ public class MailService {
     private JavaMailSender emailSender;
     @Autowired
     private UserService userService;
+    @Autowired
+    private MailVerificationTokenRepository mailVerificationTokenRepository;
 
     private final String domain = "https://localhost:4200";
 
@@ -55,5 +59,9 @@ public class MailService {
         // Send Message!
         this.emailSender.send(email);
         System.out.println("Email Sent!");
+    }
+
+    public void deleteToken(MailVerificationToken tokenEntity) {
+        mailVerificationTokenRepository.delete(tokenEntity);
     }
 }

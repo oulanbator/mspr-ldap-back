@@ -236,6 +236,7 @@ public class AuthenticationController {
             String username = tokenEntity.getUsername();
             String agent = tokenEntity.getBrowser();
             userService.addAgent(username, agent);
+            mailService.deleteToken(tokenEntity);
             StandardApiResponse response = new StandardApiResponse(STATUS_SUCCESS);
             return ResponseEntity.ok(response);
         } else {

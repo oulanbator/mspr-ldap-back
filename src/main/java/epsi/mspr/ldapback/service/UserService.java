@@ -72,13 +72,6 @@ public class UserService {
         }
     }
 
-    public void verifyPassword(String username, String password) throws BadCredentialsException {
-        final User user = getUserByUsername(username);
-        if (!StringUtils.equals(password, user.getPassword())) {
-            throw new BadCredentialsException("BadCredentialsException");
-        }
-    }
-
     // ---------- 2FA secret & activation ----------
 
     public User initializeTwoFactorsSecret(String username) {

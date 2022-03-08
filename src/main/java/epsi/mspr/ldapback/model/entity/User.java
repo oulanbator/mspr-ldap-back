@@ -14,8 +14,6 @@ public class User {
     @Column(unique = true)
     private String username;
 
-    private String password;    // TODO : delete this field ?
-
     @Column(unique = true)  // TODO : delete this field ?
     private String email;
 
@@ -37,10 +35,9 @@ public class User {
         this.twoFactorVerified = false;
     }
 
-    public User(Long id, String username, String password, String email, String twoFactorSecret, String secretSalt, boolean twoFactorVerified, String userAgent, String ipList, boolean blocked, int badCredentialsAttempts) {
+    public User(Long id, String username, String email, String twoFactorSecret, String secretSalt, boolean twoFactorVerified, String userAgent, String ipList, boolean blocked, int badCredentialsAttempts) {
         this.id = id;
         this.username = username;
-        this.password = password;
         this.email = email;
         this.twoFactorSecret = twoFactorSecret;
         this.secretSalt = secretSalt;
@@ -65,14 +62,6 @@ public class User {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public String getEmail() {
@@ -152,7 +141,6 @@ public class User {
         return "User{" +
                 "id=" + id +
                 ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
                 ", email='" + email + '\'' +
                 ", twoFactorSecret='" + twoFactorSecret + '\'' +
                 ", twoFactorVerified=" + twoFactorVerified +
