@@ -37,5 +37,14 @@ public class AuthenticationRequest {
     public void setTwoFactorsTotp(String twoFactorsTotp) {
         this.twoFactorsTotp = twoFactorsTotp;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "\"username\":\"" + username + '\"' +
+                ",\"password\":\"" + password + '\"' +
+                ",\"twoFactorsTotp\":\"" + twoFactorsTotp + '\"' +
+                '}';
+    }
 }
 

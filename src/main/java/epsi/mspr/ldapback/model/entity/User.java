@@ -1,10 +1,8 @@
 package epsi.mspr.ldapback.model.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class User {
@@ -16,31 +14,41 @@ public class User {
     @Column(unique = true)
     private String username;
 
-    // TODO : delete this field ? 
-    private String password;
-    // TODO : delete this field ? 
-    @Column(unique = true)
+    private String password;    // TODO : delete this field ?
+
+    @Column(unique = true)  // TODO : delete this field ?
     private String email;
 
+    // 2FA
     private String twoFactorSecret;
+    private String secretSalt;
     private boolean twoFactorVerified;
 
-    private String userAgent;
-    private String ipAddress;
+    // navigateur et IP
+    private String userAgent = "";
+    private String ipList = "";
+
+    // brute force
+    private boolean blocked;
+    private int badCredentialsAttempts;
+
 
     public User() {
         this.twoFactorVerified = false;
     }
 
-    public User(String username, String password, String email, String twoFactorSecret, 
-                String userAgent, String ipAddress) {
+    public User(Long id, String username, String password, String email, String twoFactorSecret, String secretSalt, boolean twoFactorVerified, String userAgent, String ipList, boolean blocked, int badCredentialsAttempts) {
+        this.id = id;
         this.username = username;
         this.password = password;
         this.email = email;
         this.twoFactorSecret = twoFactorSecret;
-        this.twoFactorVerified = false;
+        this.secretSalt = secretSalt;
+        this.twoFactorVerified = twoFactorVerified;
         this.userAgent = userAgent;
-        this.ipAddress = ipAddress;
+        this.ipList = ipList;
+        this.blocked = blocked;
+        this.badCredentialsAttempts = badCredentialsAttempts;
     }
 
     public Long getId() {
@@ -91,6 +99,30 @@ public class User {
         this.twoFactorVerified = twoFactorVerified;
     }
 
+    public String getAgentList() {
+        return userAgent;
+    }
+
+    public void setAgentList(String userAgent) {
+        this.userAgent = userAgent;
+    }
+
+    public String getIpList() {
+        return ipList;
+    }
+
+    public void setIpList(String ipList) {
+        this.ipList = ipList;
+    }
+
+    public String getSecretSalt() {
+        return secretSalt;
+    }
+
+    public void setSecretSalt(String secretSalt) {
+        this.secretSalt = secretSalt;
+    }
+
     public String getUserAgent() {
         return userAgent;
     }
@@ -99,12 +131,33 @@ public class User {
         this.userAgent = userAgent;
     }
 
-    public String getIpAddress() {
-        return ipAddress;
+    public boolean isBlocked() {
+        return blocked;
     }
 
-    public void setIpAddress(String ipAddress) {
-        this.ipAddress = ipAddress;
+    public void setBlocked(boolean blocked) {
+        this.blocked = blocked;
     }
-    
+
+    public int getBadCredentialsAttempts() {
+        return badCredentialsAttempts;
+    }
+
+    public void setBadCredentialsAttempts(int badCredentialsAttempts) {
+        this.badCredentialsAttempts = badCredentialsAttempts;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", email='" + email + '\'' +
+                ", twoFactorSecret='" + twoFactorSecret + '\'' +
+                ", twoFactorVerified=" + twoFactorVerified +
+                ", userAgent='" + userAgent + '\'' +
+                ", ipList='" + ipList + '\'' +
+                '}';
+    }
 }
