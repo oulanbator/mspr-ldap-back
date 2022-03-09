@@ -230,4 +230,15 @@ public class UserService {
             userRepository.save(user);
         }
     }
+    
+    public void resetAndClearAttempt(String username) {
+        User user = getUserByUsername(username);
+        if (user != null) {
+            user.setBadCredentialsAttempts(0);
+            user.setBlocked(false);
+            userRepository.save(user);
+        }
+    }
+    
+    
 }
