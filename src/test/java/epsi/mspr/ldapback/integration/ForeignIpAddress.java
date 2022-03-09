@@ -123,4 +123,81 @@ public class ForeignIpAddress {
                     System.out.println("");
                 });
     }
+    
+    @Test
+    public void checkBruteForce3Times() throws Exception {
+        String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36";
+        String ipAddress = "185.125.226.44"; // FR
+        String username = "CHECKBRUTE1@chatelet.local";
+        String password = "BadPassword";
+        
+        AuthenticationRequest body = new AuthenticationRequest();
+        body.setUsername(username);
+        body.setPassword(password);
+        body.setTwoFactorsTotp("");
+        User user = userService.getUserByUsername(username);
+        for(int i = 1; i <= 3; i++){
+            
+            mvc.perform(MockMvcRequestBuilders.post("/api/authenticate")
+                        .with(request -> {
+                            request.setRemoteHost(ipAddress);
+                            request.addHeader("User-Agent", userAgent);
+                            return request;
+                        })
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body.toString()))
+                .andExpect(status().is2xxSuccessful())
+                .andDo(result -> {
+                    System.out.println("\nTrying with bad password.");
+                    System.out.println("Status : " + result.getResponse().getStatus());
+                    System.out.println("Expected result : Not banned");
+                    System.out.println("Response body : ");
+                    System.out.println(result.getResponse().getContentAsString());
+                });    
+        }
+        user = userService.getUserByUsername(username);
+        assertFalse(user.isBlocked());
+        userService.resetAndClearAttempt(username);
+        
+
+    }
+    
+    @Test
+    public void checkBruteForce10Times() throws Exception {
+        String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36";
+        String ipAddress = "185.125.226.44"; // FR
+        String username = "CHECKBRUTE1@chatelet.local";
+        String password = "BadPassword";
+        
+        AuthenticationRequest body = new AuthenticationRequest();
+        body.setUsername(username);
+        body.setPassword(password);
+        body.setTwoFactorsTotp("");
+        User user = userService.getUserByUsername(username);
+        for(int i = 1; i <= 10; i++){
+            
+            mvc.perform(MockMvcRequestBuilders.post("/api/authenticate")
+                        .with(request -> {
+                            request.setRemoteHost(ipAddress);
+                            request.addHeader("User-Agent", userAgent);
+                            return request;
+                        })
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body.toString()))
+                .andExpect(status().is2xxSuccessful())
+                .andDo(result -> {
+                    System.out.println("\nTrying with bad password.");
+                    System.out.println("Status : " + result.getResponse().getStatus());
+                    System.out.println("Expected result : Banned");
+                    System.out.println("Response body : ");
+                    System.out.println(result.getResponse().getContentAsString());
+                });    
+        }
+        System.out.println(user.isBlocked());
+        user = userService.getUserByUsername(username);
+        assertTrue(user.isBlocked());
+        userService.resetAndClearAttempt(username);
+        
+
+    }
 }
