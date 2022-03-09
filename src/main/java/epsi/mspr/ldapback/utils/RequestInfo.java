@@ -32,13 +32,13 @@ public class RequestInfo {
 
     public boolean isIpFrench(String ip) {
 
-        if (StringUtils.equals(ip, "127.0.0.1") || StringUtils.equals(ip, "0:0:0:0:0:0:0:1")) {
+        if (StringUtils.equals(ip, "127.0.0.1") || StringUtils.equals(ip, "0:0:0:0:0:0:0:1") || StringUtils.equals(ip, "192.168.50.128")) {
             System.out.println("Connecting from localhost");
             return true;
         }
 
         try {
-            File database = new File(resourceLoader.getClassLoader().getResource("GeoLite2-City.mmdb").getFile());
+            File database = new File("/home/mspr/GeoLite2-City.mmdb");
 //            File database = resourceLoader.getResource("GeoLite2-City.mmdb").getFile();
             DatabaseReader dbReader = new DatabaseReader.Builder(database).build();
             CityResponse response = dbReader.city(InetAddress.getByName(ip));
