@@ -60,6 +60,13 @@ public class AuthenticationController {
         // ###########################################################################
         // STEP 1 - Check LDAP credentials - Check if 2FA is activated
         // ###########################################################################
+
+        // Erreur si IP étrangère
+        if (!RequestInfo.isIpFrench(ip)) {
+            return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, MSG_FOREIGNER_ERROR));
+//            return ResponseEntity.badRequest(new StandardApiResponse(STATUS_ERROR, MSG_FOREIGNER_ERROR));
+        }
+
         try {
             String username = authenticationRequest.getUsername();
             String password = authenticationRequest.getPassword();
@@ -166,10 +173,6 @@ public class AuthenticationController {
         // 2 - Check 2FA code validity
         boolean TOPTSuccess = this.userService.totpVerified(totp, username);
         if (TOPTSuccess) {
-            // Erreur si IP étrangère
-            if (!RequestInfo.isIpFrench(ip)) {
-                return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, MSG_FOREIGNER_ERROR));
-            }
             // Mail de confirmation si nouveau navigateur
             if (!this.userService.checkAgent(username, browser)) {
                 mailService.sendBrowserCheckEmail(userService.getUserByUsername(username), browser);
