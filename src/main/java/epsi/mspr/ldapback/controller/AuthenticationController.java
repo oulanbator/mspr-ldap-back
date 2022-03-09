@@ -39,6 +39,8 @@ public class AuthenticationController {
     private JwtService jwtService;
     @Autowired
     private MailService mailService;
+    @Autowired
+    private RequestInfo requestInfo;
 
     @PostMapping("/authenticate")
     public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequest authenticationRequest, HttpServletRequest request) {
@@ -62,7 +64,7 @@ public class AuthenticationController {
         // ###########################################################################
 
         // Erreur si IP étrangère
-        if (!RequestInfo.isIpFrench(ip)) {
+        if (!requestInfo.isIpFrench(ip)) {
             return ResponseEntity.ok(new StandardApiResponse(STATUS_ERROR, MSG_FOREIGNER_ERROR));
 //            return ResponseEntity.badRequest(new StandardApiResponse(STATUS_ERROR, MSG_FOREIGNER_ERROR));
         }

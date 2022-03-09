@@ -3,30 +3,36 @@ package epsi.mspr.ldapback;
 import epsi.mspr.ldapback.model.http.AuthenticationRequest;
 import epsi.mspr.ldapback.utils.RequestInfo;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FrenchIpTest {
 
+//    private RequestInfo requestInfo;
+
     @Test
     public void requestInfoUnitTest() {
-        boolean ipLocalHost = RequestInfo.isIpFrench("127.0.0.1");
-        boolean ipFr = RequestInfo.isIpFrench("185.125.226.44");
-        boolean ipUS = RequestInfo.isIpFrench("209.58.129.89");
-        boolean ipPoland = RequestInfo.isIpFrench("188.125.226.44");
-        boolean ipPortable = RequestInfo.isIpFrench("80.214.221.17");
-
-        // Assert True : localhost
-        assertTrue(ipLocalHost);
-        // Assert True : french ip
-        assertTrue(ipFr);
-        // Assert False : US ip
-        assertFalse(ipUS);
-        // Assert False : US ip
-        assertFalse(ipPoland);
-        // Assert True : french portable ip
-        assertTrue(ipPortable);
+        RequestInfo requestInfo = new RequestInfo();
+//
+//        boolean ipLocalHost = requestInfo.isIpFrench("127.0.0.1");
+//        boolean ipFr = requestInfo.isIpFrench("185.125.226.44");
+//        boolean ipUS = requestInfo.isIpFrench("209.58.129.89");
+//        boolean ipPoland = requestInfo.isIpFrench("188.125.226.44");
+//        boolean ipPortable = requestInfo.isIpFrench("80.214.221.17");
+//
+//        // Assert True : localhost
+//        assertTrue(ipLocalHost);
+//        // Assert True : french ip
+//        assertTrue(ipFr);
+//        // Assert False : US ip
+//        assertFalse(ipUS);
+//        // Assert False : US ip
+//        assertFalse(ipPoland);
+//        // Assert True : french portable ip
+//        assertTrue(ipPortable);
     }
 
     @Test

@@ -29,6 +29,8 @@ public class ForeignIpAddress {
     private MockMvc mvc;
     @Autowired
     private UserService userService;
+    @Autowired
+    private RequestInfo requestInfo;
 
     @Test
     public void creationEtActivationCompteUtilisateur() throws Exception {
@@ -58,7 +60,7 @@ public class ForeignIpAddress {
                     //System.out.println("Status : " + result.getResponse().getStatus());
                     System.out.println("Expected result : réception du QRCode");
                     System.out.println("IP Address : " + ipAddress);
-                    RequestInfo.isIpFrench(ipAddress);
+                    requestInfo.isIpFrench(ipAddress);
                     System.out.println("Response body : ");
                     System.out.println(result.getResponse().getContentAsString());
                 });
